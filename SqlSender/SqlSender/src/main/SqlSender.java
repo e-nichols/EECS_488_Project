@@ -116,10 +116,12 @@ public class SqlSender {
 		String lon = String.valueOf(longitude);
 		PreparedStatement add = null;
 		Date datem = new Date();
-		double time = datem.getTime();
-		System.out.println(time);
-		java.sql.Date sqlDate = new java.sql.Date(datem.getTime());
-	
+		
+		java.sql.Timestamp sqlDate = new java.sql.Timestamp(datem.getTime());
+		System.out.println("Got current time " + sqlDate);
+		
+		
+		
 	    try {
 			// STEP 2: Register JDBC driver
 			Class.forName(JDBC_DRIVER);
@@ -137,7 +139,7 @@ public class SqlSender {
 			
 			String sql = "INSERT INTO LocData (Time, Lat, Lon) VALUES (?, ?, ?)";	
 			add = conn.prepareStatement(sql);
-			add.setDate(1, sqlDate);
+			add.setTimestamp(1, sqlDate);
 			add.setString(2, lat);
 			add.setString(3, lon);
 			System.out.println(add);
