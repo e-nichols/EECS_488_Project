@@ -9,6 +9,7 @@ public class SqlSender {
 	// Database credentials
 	static final String USER = "hotspot";
 	static final String PASS = "triplicateparadox";
+	static final String url = DB_URL + "?user=" + USER + "&password=" + PASS + "&ssl=true";
 	
 	public static void main(String[] args) {
 		Connection conn = null;
@@ -25,7 +26,7 @@ public class SqlSender {
 			
 			// STEP 3: Open a connection
 			System.out.print("\nConnecting to database...");
-			conn = DriverManager.getConnection(DB_URL, USER, PASS);
+			conn = DriverManager.getConnection(url);
 			System.out.println(" SUCCESS!\n");
 			
 			// STEP 4: Ask for user input
