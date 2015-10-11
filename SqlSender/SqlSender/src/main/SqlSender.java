@@ -14,11 +14,11 @@ public class SqlSender {
 	int nextFreeID;
 	Connection conn = null;
 	
-	public SqlSender(String url, String database, String user, String pw){
-		DB_URL = "jdbc:mysql://" + url + ":3306/";
-		DATABASE = database;
-		USER = user;
-		PASS = pw;
+	SqlSender(){
+		DB_URL = "jdbc:mysql://hotspot.nichnologist.net:3306/";
+		DATABASE = "HotSpot";
+		USER = "hotspot";
+		PASS = "triplicateparadox";
 		full_url = DB_URL + DATABASE + "?user=" + USER + "&password=" + PASS + "&ssl=true";
 	}
 	
