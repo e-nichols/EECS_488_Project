@@ -45,18 +45,18 @@ public class SqlSender {
 			System.out.println("Ran driver.");
 			
 			// Open connection to database.
-			System.out.print("\nConnecting to database...");
+			System.out.print("Establishing database connection...");
 			conn = DriverManager.getConnection(full_url);
 			System.out.println(" SUCCESS!\n");
 	    }
 	    catch(Exception e){
 	    	System.out.println("Encountered error with JDBC connection driver.");
-	    	e.printStackTrace();
+	    	e.printStackTrace(System.out);
 	    	return 1;
 	    }
 	    
 		try{	
-			System.out.print("\nInserting records into table...");
+			System.out.print("Adding records to table...");
 			
 			/* The PreparedStatement 'add' is a tool that helps prevent SQL Injection
 			 *  attacks. By using the '?' identifier and the 'setString' method, PreparedStatements
@@ -71,7 +71,8 @@ public class SqlSender {
 		}
 		catch(SQLException se){
 			System.out.println("Encountered error parsing user input into query statement.");
-			se.printStackTrace();
+			se.printStackTrace(System.out);
+			
 			return 1;
 		}
 		
@@ -83,7 +84,9 @@ public class SqlSender {
 	
 	    } catch(SQLException se) {
 	    	System.out.println("Query execution failed with the following errors:");
-	        se.printStackTrace();
+	        //se.printStackTrace();
+	    	se.printStackTrace(System.out);
+	        System.out.println("Ensure user input is valid and try again.");
 	        return 1;
 	    } 
 		finally {
@@ -101,7 +104,7 @@ public class SqlSender {
 	                conn.close();
 	        } catch(SQLException se) {
 		    	System.out.println("Query failed with the following errors:");
-	            se.printStackTrace();
+	            se.printStackTrace(System.out);
 	            return 1;
 	        }
 	    }
@@ -109,7 +112,7 @@ public class SqlSender {
 	    return 0;
 	}
 	
-	public void addLoc(double latitude, double longitude){
+	public int addLoc(double latitude, double longitude){
 
 		
 		String lat = String.valueOf(latitude);
@@ -123,19 +126,30 @@ public class SqlSender {
 		
 		
 	    try {
-			// STEP 2: Register JDBC driver
+			// Instantiate driver.
 			Class.forName(JDBC_DRIVER);
 			System.out.println("Ran driver.");
-			
-			// STEP 3: Open a connection
-			System.out.print("\nConnecting to database...");
+	    }
+		catch(Exception e){
+	    	System.out.println("Encountered error with JDBC connection driver.");
+	    	e.printStackTrace(System.out);
+	    	return 1;
+	    }
+		try{
+			// Open connection to database
+			System.out.print("Establishing database connection...");
 			conn = DriverManager.getConnection(full_url);
 			System.out.println(" SUCCESS!\n");
+	    }
+		catch(SQLException se){
+			System.out.println("Error encountered connecting to SQL database.");
+			se.printStackTrace(System.out);
+			return 1;
+		}
+	    
 			
-			
-			
-			// STEP 5: Execute query
-			System.out.print("\nInserting records into table...");
+		try{
+			System.out.print("Adding records to table...");
 			
 			String sql = "INSERT INTO LocData (Time, Lat, Lon) VALUES (?, ?, ?)";	
 			add = conn.prepareStatement(sql);
@@ -146,24 +160,33 @@ public class SqlSender {
 			add.executeUpdate(); 
 			
 			System.out.println(" SUCCESS!\n");
-	
-	    } catch(SQLException se) {
-	        se.printStackTrace();
-	    } catch(Exception e) {
-	        e.printStackTrace();
-	    } finally {
+		}
+		catch(SQLException se){
+			System.out.println("Encountered error parsing user input into query statement.");
+			se.printStackTrace(System.out);
+			return 1;
+		}
+		catch(Exception e) {
+	        e.printStackTrace(System.out);
+	        return 1;
+	    }
+		finally {
 	        try {
 	            if(add != null)
 	                conn.close();
 	        } catch(SQLException se) {
+	        	return 1;
 	        }
 	        try {
 	            if(conn != null)
 	                conn.close();
 	        } catch(SQLException se) {
-	            se.printStackTrace();
+	        	System.out.println("Error closing connection. Was connection opened?");
+	            se.printStackTrace(System.out);
+	            return 1;
 	        }
 	    }
 	    System.out.println("Successfully added new location entry to LocData.");
+	    return 0;
 	}
 }
