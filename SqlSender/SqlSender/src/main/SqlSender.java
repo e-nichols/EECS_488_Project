@@ -78,11 +78,14 @@ public class SqlSender {
 		
 		try{
 			// Execute query over JDBC SQL connection on port 3306 with SSL.
+			System.out.println("Executing SQL query on remote database...");
 			add.executeUpdate(); 
 			
 			System.out.println(" SUCCESS!\n");
 	
-	    } catch(SQLException se) {
+	    }
+		catch(SQLException se) {
+	    	System.out.println(" FAIL!\n");
 	    	System.out.println("Query execution failed with the following errors:");
 	        //se.printStackTrace();
 	    	se.printStackTrace(System.out);
@@ -96,16 +99,14 @@ public class SqlSender {
 	                return 0;
 	            }
 	        } catch(SQLException se) {
-	        	return 1;
 	        	// Errors here can be ignored.
 	        }
 	        try {
 	            if(conn != null)
 	                conn.close();
 	        } catch(SQLException se) {
-		    	System.out.println("Query failed with the following errors:");
+		    	System.out.println("Error closing connection. Was connection opened?");
 	            se.printStackTrace(System.out);
-	            return 1;
 	        }
 	    }
 	    System.out.println("Successfully added new user to UserData.");
@@ -166,16 +167,11 @@ public class SqlSender {
 			se.printStackTrace(System.out);
 			return 1;
 		}
-		catch(Exception e) {
-	        e.printStackTrace(System.out);
-	        return 1;
-	    }
 		finally {
 	        try {
 	            if(add != null)
 	                conn.close();
 	        } catch(SQLException se) {
-	        	return 1;
 	        }
 	        try {
 	            if(conn != null)
@@ -183,7 +179,6 @@ public class SqlSender {
 	        } catch(SQLException se) {
 	        	System.out.println("Error closing connection. Was connection opened?");
 	            se.printStackTrace(System.out);
-	            return 1;
 	        }
 	    }
 	    System.out.println("Successfully added new location entry to LocData.");
