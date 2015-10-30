@@ -68,6 +68,7 @@ public class MapsActivity extends FragmentActivity {
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
                 setUpMap();
+                mMap.setMyLocationEnabled(true);
             }
         }
     }
