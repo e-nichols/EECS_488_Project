@@ -4,27 +4,20 @@
     android:layout_width="match_parent">
 
 
-    <!--<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-        android:layout_height="fill_parent" android:id="@+id/map" tools:context=".MapsActivity"
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/map"
+        tools:context=".MapsActivity"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         tools:layout="@layout/activity_maps" />
-    -->
-    <com.google.android.maps.MapView
-        android:id="@+id/map" android:layout_width="fill_parent"
-        android:layout_height="fill_parent" android:enabled="true"
-        android:layout_centerInParent="true"
-        android:clickable="true"
-        android:apiKey="AIzaSyBHnOmyx3kDhha3mGSiHOWQh2A7VCccihI"
-
-        />
-
 
     <Button
         android:id="@+id/toast_button"
-        android:layout_below="@id/map"
         android:layout_width="match_parent"
-        android:layout_height="50dip"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:text="@string/button_text"
         />
 

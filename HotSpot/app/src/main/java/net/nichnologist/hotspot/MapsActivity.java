@@ -30,6 +30,8 @@ public class MapsActivity extends FragmentActivity {
         super.onResume();
         setUpMapIfNeeded();
 
+        mMap.setMyLocationEnabled(true);
+
         test_button = (Button) findViewById(R.id.toast_button);
         test_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -40,6 +42,8 @@ public class MapsActivity extends FragmentActivity {
 
                 Toast toast = Toast.makeText(context, text, duration);
                 toast.show();
+
+
             }
         });
     }
