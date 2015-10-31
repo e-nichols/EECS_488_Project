@@ -62,7 +62,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             }
         });
 
-        goToLastLocation("animate");
+        //goToLastLocation("animate");
 
     }
 
@@ -95,12 +95,6 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         }
     }
 
-    /**
-     * This is where we can add markers or lines, add listeners or move the camera. In this case, we
-     * just add a marker near Africa.
-     * <p/>
-     * This should only be called once and when we are sure that {@link #mMap} is not null.
-     */
     private void setUpMap() {
         //optional map additions go here
     }
