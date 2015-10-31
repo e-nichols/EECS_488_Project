@@ -49,12 +49,14 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         super.onResume();
         setUpMapIfNeeded();
 
+        // Connect API Client. MUST be done after client build.
         mGoogleApiClient.connect();
 
         test_button = (Button) findViewById(R.id.toast_button);
         test_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                goToLastLocation("animate");
                 Context context = getApplicationContext();
                 CharSequence text = "Hello toast!";
                 int duration = Toast.LENGTH_SHORT;
@@ -65,6 +67,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
             }
         });
+
     }
 
     /**
@@ -116,13 +119,22 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
     @Override
     public void onConnected(Bundle connectionHint) {
+        goToLastLocation("move");
+    }
+
+    private void goToLastLocation(String how){
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         if (lastLocation != null) {
             latLon = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
         }
         CameraUpdate position = CameraUpdateFactory.newLatLngZoom(latLon, 13);
-        mMap.moveCamera(position);
+        if(String.valueOf(how) == "move") {
+            mMap.moveCamera(position);
+        }
+        else if(String.valueOf(how) == "animate"){
+            mMap.animateCamera(position);
+        }
     }
 
 
