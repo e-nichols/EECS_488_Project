@@ -2,4 +2,6 @@
     <string name="app_name">HotSpot</string>
     <string name="title_activity_maps">Map</string>
     <string name="button_text">Button that throws toast for testing.</string>
+    <string name="title_activity_login">Sign in</string>
+
 </resources>
