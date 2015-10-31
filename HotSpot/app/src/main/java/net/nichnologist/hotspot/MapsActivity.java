@@ -122,12 +122,16 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         goToLastLocation("move");
     }
 
-    private void goToLastLocation(String how){
+    private void updateLastLocation(){
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         if (lastLocation != null) {
             latLon = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
         }
+    }
+
+    private void goToLastLocation(String how){
+        updateLastLocation();
         CameraUpdate position = CameraUpdateFactory.newLatLngZoom(latLon, 13);
         if(String.valueOf(how) == "move") {
             mMap.moveCamera(position);
