@@ -1,24 +1,19 @@
 package net.nichnologist.hotspot;
 
 import android.content.Context;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -30,7 +25,6 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     Button test_button;
     Location lastLocation;
     LatLng latLon;
-    private LocationManager manager;
     private GoogleApiClient mGoogleApiClient;
 
     @Override
@@ -49,7 +43,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         super.onResume();
         setUpMapIfNeeded();
 
-        // Connect API Client. MUST be done after client build.
+        // Connect API Client. MUST be done after client build, which is handled in onCreate.
         mGoogleApiClient.connect();
 
         test_button = (Button) findViewById(R.id.toast_button);
@@ -67,6 +61,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
             }
         });
+
+        goToLastLocation("animate");
 
     }
 
@@ -106,7 +102,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-        //optional stuff for map setup
+        //optional map additions go here
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -133,14 +129,13 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     private void goToLastLocation(String how){
         updateLastLocation();
         CameraUpdate position = CameraUpdateFactory.newLatLngZoom(latLon, 13);
-        if(String.valueOf(how) == "move") {
+        if(how.equals("move")) {
             mMap.moveCamera(position);
         }
-        else if(String.valueOf(how) == "animate"){
+        else if(how.equals("animate")){
             mMap.animateCamera(position);
         }
     }
-
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -161,8 +156,5 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         Toast toast = Toast.makeText(context, text, duration);
         toast.show();
     }
-
-
-
 
 }
