@@ -62,8 +62,19 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             }
         });
 
-        //goToLastLocation("animate");
-
+        try {
+            goToLastLocation("animate");
+        }
+        catch(RuntimeException e){
+            //Catches an error here on first start. Seems ok on subsequent "onResume"s
+        }
+        catch(Exception e){
+            Context context = getApplicationContext();
+            CharSequence text = "Caught other exception (not cool): " + e.getMessage();
+            int duration = Toast.LENGTH_SHORT;
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+        }
     }
 
     /**
