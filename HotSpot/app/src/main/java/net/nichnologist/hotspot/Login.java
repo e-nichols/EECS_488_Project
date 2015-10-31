@@ -25,7 +25,6 @@ public class Login extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Passing through to map", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-
                 startActivity(menuIntent);
             }
         });
