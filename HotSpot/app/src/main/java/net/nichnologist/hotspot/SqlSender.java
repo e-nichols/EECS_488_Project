@@ -11,7 +11,6 @@ public class SqlSender {
 	String USER;
 	String PASS;
 	String full_url;
-	int nextFreeID;
 	Connection conn = null;
 	
 	SqlSender(){
@@ -35,8 +34,6 @@ public class SqlSender {
 	 */
 	public int addUser(String first, String last){
 
-		String fn = first;
-		String ln = last;
 		PreparedStatement add = null;
 	
 	    try {
@@ -65,8 +62,8 @@ public class SqlSender {
 			 */
 			String sql = "INSERT INTO UserData (FirstName, LastName) VALUES (?, ?)";	
 			add = conn.prepareStatement(sql);
-			add.setString(1, fn);
-			add.setString(2, ln);
+			add.setString(1, first);
+			add.setString(2, last);
 			System.out.println(add);
 		}
 		catch(SQLException se){
@@ -112,7 +109,7 @@ public class SqlSender {
 	    System.out.println("Successfully added new user to UserData.");
 	    return 0;
 	}
-	
+
 	public int addLoc(double latitude, double longitude){
 
 		
@@ -172,6 +169,7 @@ public class SqlSender {
 	            if(add != null)
 	                conn.close();
 	        } catch(SQLException se) {
+				// Don't notify on these.
 	        }
 	        try {
 	            if(conn != null)
