@@ -5,6 +5,7 @@ import android.widget.Toast;
 
 /**
  * Created by dhorvath on 10/31/2015.
+ *
  */
 public class Tools {
     protected static void toastShort(String text, Context context){
