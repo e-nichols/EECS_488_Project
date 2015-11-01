@@ -34,8 +34,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         setUpMapIfNeeded();
 
         buildGoogleApiClient();
-        mGoogleApiClient.connect();
 
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -50,15 +50,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         test_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                toastShort("Have some toast text!");
                 goToLastLocation("animate");
-                Context context = getApplicationContext();
-                CharSequence text = "Hello toast!";
-                int duration = Toast.LENGTH_SHORT;
-
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
-
-
             }
         });
 
@@ -69,11 +62,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             //Catches an error here on first start. Seems ok on subsequent "onResume"s
         }
         catch(Exception e){
-            Context context = getApplicationContext();
-            CharSequence text = "Caught other exception (not cool): " + e.getMessage();
-            int duration = Toast.LENGTH_SHORT;
-            Toast toast = Toast.makeText(context, text, duration);
-            toast.show();
+            toastLong("Caught other exception (not cool): " + e.getMessage());
         }
     }
 
@@ -144,20 +133,24 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
     @Override
     public void onConnectionSuspended(int i) {
-        Context context = getApplicationContext();
-        CharSequence text = "Connection Suspended";
-        int duration = Toast.LENGTH_SHORT;
-
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
+        toastShort("Connection Suspended");
     }
 
     @Override
     public void onConnectionFailed(com.google.android.gms.common.ConnectionResult connectionResult) {
-        Context context = getApplicationContext();
-        CharSequence text = "Connection Failed";
-        int duration = Toast.LENGTH_SHORT;
+        toastShort("Connection Failed");
+    }
 
+    protected void toastShort(String text){
+        Context context = getApplicationContext();
+        int duration = Toast.LENGTH_SHORT;
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+    }
+
+    protected void toastLong(String text){
+        Context context = getApplicationContext();
+        int duration = Toast.LENGTH_LONG;
         Toast toast = Toast.makeText(context, text, duration);
         toast.show();
     }
