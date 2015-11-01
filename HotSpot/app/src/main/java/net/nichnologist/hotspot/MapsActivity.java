@@ -27,6 +27,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     LatLng latLon;
     private GoogleApiClient mGoogleApiClient;
 
+    SqlSender sender;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +38,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         buildGoogleApiClient();
 
         mGoogleApiClient.connect();
+
+        sender = new SqlSender();
     }
 
     @Override
