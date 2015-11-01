@@ -50,7 +50,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         test_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toastShort("Have some toast text!");
+                Tools.toastShort("Have some toast text!", getApplicationContext());
                 goToLastLocation("animate");
             }
         });
@@ -62,7 +62,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             //Catches an error here on first start. Seems ok on subsequent "onResume"s
         }
         catch(Exception e){
-            toastLong("Caught other exception (not cool): " + e.getMessage());
+            Tools.toastLong("Caught other exception (not cool): " + e.getMessage(), getApplicationContext());
         }
     }
 
@@ -133,26 +133,14 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
     @Override
     public void onConnectionSuspended(int i) {
-        toastShort("Connection Suspended");
+        Tools.toastShort("Connection Suspended", getApplicationContext());
     }
 
     @Override
     public void onConnectionFailed(com.google.android.gms.common.ConnectionResult connectionResult) {
-        toastShort("Connection Failed");
+        Tools.toastShort("Connection Failed", getApplicationContext());
     }
 
-    protected void toastShort(String text){
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_SHORT;
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
-    }
 
-    protected void toastLong(String text){
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_LONG;
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
-    }
 
 }
