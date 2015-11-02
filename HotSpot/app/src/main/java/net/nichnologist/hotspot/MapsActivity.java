@@ -1,24 +1,19 @@
 package net.nichnologist.hotspot;
 
 import android.content.Context;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -27,15 +22,13 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
-<<<<<<< HEAD
-=======
     Button test_button;
     Location lastLocation;
     LatLng latLon;
-    private LocationManager manager;
     private GoogleApiClient mGoogleApiClient;
 
->>>>>>> dev
+    SqlSender sender;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,8 +36,10 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         setUpMapIfNeeded();
 
         buildGoogleApiClient();
+
         mGoogleApiClient.connect();
 
+        sender = new SqlSender();
     }
 
     @Override
@@ -52,26 +47,29 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         super.onResume();
         setUpMapIfNeeded();
 
-<<<<<<< HEAD
+        // Connect API Client. MUST be done after client build, which is handled in onCreate.
 
-=======
         mGoogleApiClient.connect();
 
         test_button = (Button) findViewById(R.id.toast_button);
         test_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Context context = getApplicationContext();
-                CharSequence text = "Hello toast!";
-                int duration = Toast.LENGTH_SHORT;
-
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
-
-
+                Tools.toastShort("Have some toast text!", getApplicationContext());
+                goToLastLocation("animate");
             }
         });
->>>>>>> dev
+
+        try {
+            goToLastLocation("animate");
+        }
+        catch(RuntimeException e){
+            //Catches an error here on first start. Seems ok on subsequent "onResume"s
+        }
+        catch(Exception e){
+            Tools.toastLong("Caught other exception (not cool): " + e.getMessage(), getApplicationContext());
+        }
+
     }
 
     /**
@@ -103,14 +101,8 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         }
     }
 
-    /**
-     * This is where we can add markers or lines, add listeners or move the camera. In this case, we
-     * just add a marker near Africa.
-     * <p/>
-     * This should only be called once and when we are sure that {@link #mMap} is not null.
-     */
     private void setUpMap() {
-        //optional stuff for map setup
+        //optional map additions go here
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -123,36 +115,37 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
     @Override
     public void onConnected(Bundle connectionHint) {
+        goToLastLocation("move");
+    }
+
+    private void updateLastLocation(){
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         if (lastLocation != null) {
             latLon = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
         }
-        CameraUpdate position = CameraUpdateFactory.newLatLngZoom(latLon, 13);
-        mMap.moveCamera(position);
     }
 
+    private void goToLastLocation(String how){
+        updateLastLocation();
+        CameraUpdate position = CameraUpdateFactory.newLatLngZoom(latLon, 13);
+        if(how.equals("move")) {
+            mMap.moveCamera(position);
+        }
+        else if(how.equals("animate")){
+            mMap.animateCamera(position);
+        }
+    }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Context context = getApplicationContext();
-        CharSequence text = "Connection Suspended";
-        int duration = Toast.LENGTH_SHORT;
-
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
+        Tools.toastShort("Connection Suspended", getApplicationContext());
     }
 
     @Override
     public void onConnectionFailed(com.google.android.gms.common.ConnectionResult connectionResult) {
-        Context context = getApplicationContext();
-        CharSequence text = "Connection Failed";
-        int duration = Toast.LENGTH_SHORT;
-
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
+        Tools.toastShort("Connection Failed", getApplicationContext());
     }
-
 
 
 
