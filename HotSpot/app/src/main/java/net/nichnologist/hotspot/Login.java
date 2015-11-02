@@ -10,9 +10,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
-public class Login extends AppCompatActivity {
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+
+public class Login extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
     SharedPreferences prefs;
+
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +25,10 @@ public class Login extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        buildGoogleApiClient();
+
+        mGoogleApiClient.connect();
 
         prefs = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         try{
@@ -60,4 +69,38 @@ public class Login extends AppCompatActivity {
         });
     }
 
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        // Connection things here
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Tools.toastShort("Connection Suspended", getApplicationContext());
+    }
+
+    @Override
+    public void onConnectionFailed(com.google.android.gms.common.ConnectionResult connectionResult) {
+        Tools.toastShort("Connection Failed", getApplicationContext());
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
+    }
 }

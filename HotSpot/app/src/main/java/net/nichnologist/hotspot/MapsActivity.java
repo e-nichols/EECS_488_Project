@@ -145,6 +145,16 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         Tools.toastShort("Connection Failed", getApplicationContext());
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
+    }
 
 }
