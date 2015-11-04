@@ -10,14 +10,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.plus.Plus;
 
-public class Login extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
+public class Login extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
     SharedPreferences prefs;
 
-    private GoogleApiClient mGoogleApiClient;
+    private GoogleApiClient mLogin_GoogleApiClient;
+    private static final int RC_SIGN_IN = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +32,7 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
 
         buildGoogleApiClient();
 
-        mGoogleApiClient.connect();
+        mLogin_GoogleApiClient.connect();
 
         prefs = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         try{
@@ -67,10 +71,18 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
                         .setAction("Action", null).show();
             }
         });
+
+        mLogin_GoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Plus.API)
+                .addScope(new Scope(Scopes.PROFILE))
+                .addScope(new Scope(Scopes.EMAIL))
+                .build();
     }
 
     protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
+        mLogin_GoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
@@ -79,7 +91,7 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        // Connection things here
+        Tools.toastShort("onConnected Method", getApplicationContext());
     }
 
     @Override
@@ -95,12 +107,16 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
     @Override
     protected void onStart() {
         super.onStart();
-        mGoogleApiClient.connect();
+        mLogin_GoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mGoogleApiClient.disconnect();
+        mLogin_GoogleApiClient.disconnect();
+    }
+
+    public void onClick(View v) {
+        // ...
     }
 }
