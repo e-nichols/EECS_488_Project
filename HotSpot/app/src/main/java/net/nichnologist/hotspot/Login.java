@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -11,16 +13,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.Statement;
 
 public class Login extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
@@ -37,6 +43,12 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
     private String personPhoto;
     private String personGooglePlusProfile;
 
+    private Location lastLocation;
+    SqlConnector connector;
+    private static final String url = "jdbc:mysql://hotspot.nichnologist.net:3306/HotSpot";
+    private static final String user = "hotspot";
+    private static final String pass = "triplicateparadox";
+
     /* Is there a ConnectionResult resolution in progress? */
     private boolean mIsResolving = false;
 
@@ -49,6 +61,8 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
         setContentView(R.layout.activity_login);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        connector = new SqlConnector();
 
         buildGoogleApiClient();
 
@@ -98,23 +112,53 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
             }
         });
 
-        mLogin_GoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Plus.API)
-                .addScope(new Scope(Scopes.PROFILE))
-                .addScope(new Scope(Scopes.EMAIL))
-                .build();
+        FloatingActionButton locationSendButton = (FloatingActionButton) findViewById(R.id.locationSendButton);
+        locationSendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(sendNewLocationPoint()){
+                    Tools.toastShort("send method completed", getApplicationContext());
+                }
+                else{
+                    Tools.toastShort("send method caught exception, returned false", getApplicationContext());
+                }
+            }
+        });
 
         SignInButton googleSignInButton = (SignInButton) findViewById(R.id.sign_in_button);
         googleSignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Tools.toastShort("clicked button", getApplicationContext());
                 onSignInClicked();
             }
         });
 
+    }
 
+    private boolean sendNewLocationPoint() {
+        updateLastLocation();
+        try {
+            //Tools.toastShort(String.valueOf(lastLocation.getLatitude()) + " " + String.valueOf(lastLocation.getLongitude()), getApplicationContext());
+            connector.Connect();
+            Tools.toastLong("Ran connection attempt", getApplicationContext());
+            return true;
+        }
+        catch(Exception e){
+            Tools.toastLong(e.getMessage(), getApplicationContext());
+            return false;
+        }
+    }
+
+    private void updateLastLocation(){
+        lastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mLogin_GoogleApiClient);
+        /*
+        if (lastLocation != null) {
+            latLon = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+            // Location update actions
+        }
+        */
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -122,6 +166,7 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
+                .addApi(Plus.API)
                 .build();
     }
 
@@ -135,7 +180,7 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
     @Override
     protected void onStart() {
         super.onStart();
-        mLogin_GoogleApiClient.connect();
+        //mLogin_GoogleApiClient.connect();
     }
 
     @Override
@@ -233,4 +278,34 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
 
         Tools.toastShort("Signed out", getApplicationContext());
     }
+
+    private class SqlConnector extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            String response = "";
+
+
+            try {
+                SqlSender sender = new SqlSender();
+                sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return response;
+
+
+        }
+
+        public void Connect(){
+            Login.SqlConnector task = new SqlConnector();
+            task.execute();
+
+            //Tools.toastLong(task.doInBackground(), getApplicationContext());
+        }
+
+
+    }
+
+
 }
