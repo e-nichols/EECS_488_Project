@@ -5,4 +5,9 @@
     <string name="button_text">Button that throws toast for testing.</string>
     <string name="title_activity_login">Sign in</string>
 
+
+    <!-- Strings for sharedpreferences-->
+    <string name="GOOGLE_ID">net.nichnologist.net.google_id</string>
+    <string name="FIRSTRUN_BOOL">net.nichnologist.net.is_first_run</string>
+
 </resources>

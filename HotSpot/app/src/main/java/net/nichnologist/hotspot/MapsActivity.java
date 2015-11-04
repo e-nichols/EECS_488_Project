@@ -1,12 +1,10 @@
 package net.nichnologist.hotspot;
 
-import android.content.Context;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -15,7 +13,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 
 public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -25,7 +22,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     Button test_button;
     Location lastLocation;
     LatLng latLon;
-    private GoogleApiClient mGoogleApiClient;
+    private GoogleApiClient mMap_GoogleApiClient;
 
     SqlSender sender;
 
@@ -37,7 +34,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
         buildGoogleApiClient();
 
-        mGoogleApiClient.connect();
+        mMap_GoogleApiClient.connect();
 
         sender = new SqlSender();
     }
@@ -48,8 +45,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         setUpMapIfNeeded();
 
         // Connect API Client. MUST be done after client build, which is handled in onCreate.
-
-        mGoogleApiClient.connect();
+        mMap_GoogleApiClient.connect();
 
         test_button = (Button) findViewById(R.id.toast_button);
         test_button.setOnClickListener(new View.OnClickListener() {
@@ -69,7 +65,6 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         catch(Exception e){
             Tools.toastLong("Caught other exception (not cool): " + e.getMessage(), getApplicationContext());
         }
-
     }
 
     /**
@@ -106,7 +101,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
     }
 
     protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
+        mMap_GoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
@@ -120,7 +115,7 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
 
     private void updateLastLocation(){
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
+                mMap_GoogleApiClient);
         if (lastLocation != null) {
             latLon = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
         }
@@ -147,6 +142,16 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
         Tools.toastShort("Connection Failed", getApplicationContext());
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mMap_GoogleApiClient.connect();
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mMap_GoogleApiClient.disconnect();
+    }
 
 }
