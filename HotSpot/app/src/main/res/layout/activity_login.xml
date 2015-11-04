@@ -35,25 +35,41 @@
             android:layout_centerVertical="true"
             android:layout_centerHorizontal="true" />
 
+
+
     </RelativeLayout>
 
     <include layout="@layout/content_login" />
 
-
-
-        <android.support.design.widget.FloatingActionButton android:id="@+id/resetButton"
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/resetButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|left"
             android:layout_margin="@dimen/fab_margin"
             android:src="@android:drawable/ic_dialog_info" />
 
-        <android.support.design.widget.FloatingActionButton android:id="@+id/mapButton"
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/signOutButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:src="@android:drawable/button_onoff_indicator_off"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="@dimen/fab_margin"
+            android:layout_toRightOf="@+id/resetButton"
+            android:layout_toEndOf="@+id/resetButton"
+            />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/mapButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
             android:src="@android:drawable/ic_dialog_map" />
+
+
 
 
 

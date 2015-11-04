@@ -20,14 +20,22 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.plus.Plus;
+import com.google.android.gms.plus.model.people.Person;
 
 public class Login extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
+    // Declare object for storing local data after app destroy.
     SharedPreferences prefs;
 
     private GoogleApiClient mLogin_GoogleApiClient;
     private static final int RC_SIGN_IN = 0;
     public static final String TAG = Login.class.getSimpleName();
+
+    // Used for GET action on Google Sign-in data.
+    private Person currentPerson;
+    private String personName;
+    private String personPhoto;
+    private String personGooglePlusProfile;
 
     /* Is there a ConnectionResult resolution in progress? */
     private boolean mIsResolving = false;
@@ -50,7 +58,7 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
             Boolean isFirstRun = prefs.getBoolean("isFirstRun", true);
             if(isFirstRun){
                 Tools.toastShort("First run.", getApplicationContext());
-                prefs.edit().putBoolean("isFirstRun", false).apply();
+                prefs.edit().putBoolean(getString(R.string.FIRSTRUN_BOOL), false).apply();
             }
             if(!isFirstRun){
                 Tools.toastShort("Not first run.", getApplicationContext());
@@ -82,6 +90,14 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
             }
         });
 
+        FloatingActionButton signOutButton = (FloatingActionButton) findViewById(R.id.signOutButton);
+        signOutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onSignOutClicked();
+            }
+        });
+
         mLogin_GoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -97,6 +113,8 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
                 onSignInClicked();
             }
         });
+
+
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -194,5 +212,25 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
 
         // Show the signed-in UI
         Tools.toastShort("Signed in", getApplicationContext());
+
+        if (Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient) != null) {
+            currentPerson = Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient);
+            personName = currentPerson.getDisplayName();
+            personPhoto = currentPerson.getImage().getUrl();
+            personGooglePlusProfile = currentPerson.getUrl();
+
+            prefs.edit().putString(getString(R.string.GOOGLE_ID), currentPerson.getId()).apply();
+        }
+    }
+
+    private void onSignOutClicked() {
+        // Clear the default account so that GoogleApiClient will not automatically
+        // connect in the future.
+        if (mLogin_GoogleApiClient.isConnected()) {
+            Plus.AccountApi.clearDefaultAccount(mLogin_GoogleApiClient);
+            mLogin_GoogleApiClient.disconnect();
+        }
+
+        Tools.toastShort("Signed out", getApplicationContext());
     }
 }
