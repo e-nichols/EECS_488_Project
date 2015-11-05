@@ -16,22 +16,26 @@ import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.plus.People;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.google.android.gms.plus.model.people.PersonBuffer;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
 
-public class Login extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
+public class Login extends AppCompatActivity
+        implements GoogleApiClient.ConnectionCallbacks,
+            GoogleApiClient.OnConnectionFailedListener,
+            View.OnClickListener
+            //,ResultCallback<People.LoadPeopleResult>
+            {
 
     // Declare object for storing local data after app destroy.
     SharedPreferences prefs;
+    SharedPreferences.Editor editor;
 
     private GoogleApiClient mLogin_GoogleApiClient;
     private static final int RC_SIGN_IN = 0;
@@ -45,9 +49,6 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
 
     private Location lastLocation;
     SqlConnector connector;
-    private static final String url = "jdbc:mysql://hotspot.nichnologist.net:3306/HotSpot";
-    private static final String user = "hotspot";
-    private static final String pass = "triplicateparadox";
 
     /* Is there a ConnectionResult resolution in progress? */
     private boolean mIsResolving = false;
@@ -66,13 +67,16 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
 
         buildGoogleApiClient();
 
-
         prefs = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        editor = prefs.edit();
+
         try{
             Boolean isFirstRun = prefs.getBoolean("isFirstRun", true);
             if(isFirstRun){
                 Tools.toastShort("First run.", getApplicationContext());
-                prefs.edit().putBoolean(getString(R.string.FIRSTRUN_BOOL), false).apply();
+                //editor.clear();
+                editor.putBoolean("isFirstRun", false);
+                editor.apply();
             }
             if(!isFirstRun){
                 Tools.toastShort("Not first run.", getApplicationContext());
@@ -98,8 +102,8 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                prefs.edit().clear().apply();
-                Snackbar.make(view, "Dumping shared preferences", Snackbar.LENGTH_LONG)
+                editor.clear().apply();
+                Snackbar.make(view, "Deleting shared preferences", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
@@ -129,7 +133,6 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
         googleSignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Tools.toastShort("clicked button", getApplicationContext());
                 onSignInClicked();
             }
         });
@@ -139,9 +142,8 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
     private boolean sendNewLocationPoint() {
         updateLastLocation();
         try {
-            //Tools.toastShort(String.valueOf(lastLocation.getLatitude()) + " " + String.valueOf(lastLocation.getLongitude()), getApplicationContext());
             connector.Connect();
-            Tools.toastLong("Ran connection attempt", getApplicationContext());
+            Tools.toastLong(prefs.getString("net.nichnologist.hotspot.first_name", "failed to get firstname from prefs"), getApplicationContext());
             return true;
         }
         catch(Exception e){
@@ -167,6 +169,8 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .addApi(Plus.API)
+                .addScope(Plus.SCOPE_PLUS_PROFILE)
+                .addScope(Plus.SCOPE_PLUS_LOGIN)
                 .build();
     }
 
@@ -180,7 +184,8 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
     @Override
     protected void onStart() {
         super.onStart();
-        //mLogin_GoogleApiClient.connect();
+        if (mLogin_GoogleApiClient != null)
+            mLogin_GoogleApiClient.connect();
     }
 
     @Override
@@ -255,16 +260,31 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
         Log.d(TAG, "onConnected:" + bundle);
         mShouldResolve = false;
 
+        //I THINK THESE ARE REDUNDANT, BUT LEAVING IN CASE THINGS GO WONKY LATER
+        //Plus.PeopleApi.loadVisible(mLogin_GoogleApiClient, null).setResultCallback(this);
+        //Plus.PeopleApi.load(mLogin_GoogleApiClient, "me");
+
         // Show the signed-in UI
         Tools.toastShort("Signed in", getApplicationContext());
 
         if (Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient) != null) {
+            Tools.toastShort("Current person not null (GOOD)", getApplicationContext());
             currentPerson = Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient);
             personName = currentPerson.getDisplayName();
             personPhoto = currentPerson.getImage().getUrl();
             personGooglePlusProfile = currentPerson.getUrl();
 
-            prefs.edit().putString(getString(R.string.GOOGLE_ID), currentPerson.getId()).apply();
+            //editor.clear();
+            editor.putString("net.nichnologist.hotspot.first_name", currentPerson.getName().getGivenName());
+            editor.apply();
+            editor.putString("net.nichnologist.hotspot.last_name", currentPerson.getName().getFamilyName());
+            editor.apply();
+            editor.putString("net.nichnologist.hotspot.google_id", currentPerson.getId());
+            editor.apply();
+            Tools.toastShort("Applied prefs", getApplicationContext());
+        }
+        else{
+            Tools.toastShort("Current person is null (BAD)", getApplicationContext());
         }
     }
 
@@ -279,22 +299,35 @@ public class Login extends AppCompatActivity implements GoogleApiClient.Connecti
         Tools.toastShort("Signed out", getApplicationContext());
     }
 
+    /*
+    @Override
+    public void onResult(People.LoadPeopleResult loadPeopleResult) {
+
+    }
+    */
+
     private class SqlConnector extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
             String response = "";
-
-
             try {
                 SqlSender sender = new SqlSender();
-                sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());
+                if( sender.getID(prefs.getString("net.nichnologist.hotspot.google_id", "")) == 0){
+                    sender.addUser(
+                            prefs.getString("net.nichnologist.hotspot.first_name", "NULL"),
+                            prefs.getString("net.nichnologist.hotspot.last_name", "NULL"),
+                            prefs.getString("net.nichnologist.hotspot.google_id", "NULL")
+                    );
+                }
+                else{
+                    sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());
+                }
+
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
             return response;
-
-
         }
 
         public void Connect(){
