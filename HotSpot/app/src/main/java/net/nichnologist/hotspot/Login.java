@@ -312,18 +312,14 @@ public class Login extends AppCompatActivity
             String response = "";
             try {
                 SqlSender sender = new SqlSender();
-                if( sender.getID(prefs.getString("net.nichnologist.hotspot.google_id", "")) == 0){
+                if( sender.getID(prefs.getString("net.nichnologist.hotspot.google_id", "X")) == 0){
                     sender.addUser(
                             prefs.getString("net.nichnologist.hotspot.first_name", "NULL"),
                             prefs.getString("net.nichnologist.hotspot.last_name", "NULL"),
                             prefs.getString("net.nichnologist.hotspot.google_id", "NULL")
                     );
                 }
-                else{
-                    sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());
-                }
-
-
+                sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());
             } catch (Exception e) {
                 e.printStackTrace();
             }

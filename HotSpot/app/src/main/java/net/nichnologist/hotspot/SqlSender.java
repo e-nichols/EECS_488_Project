@@ -13,11 +13,17 @@ public class SqlSender {
     String full_url;
     Connection conn = null;
 
+    // Constructor for SqlSender. Essentially builds the string that will become the JDBC address
+    //  to send the query.
     SqlSender(){
+        // Base address and port of the remote database server
         DB_URL = "jdbc:mysql://hotspot.nichnologist.net:3306/";
+        // Name of the MySQL database. JDBC interfaces with the database directly, so it won't call 'USE'.
         DATABASE = "HotSpot";
         // This user has only INSERT permissions for this particular database. As such,
         //  it shouldn't be able to much up anything outside that scope.
+        //TODO: Get these parameters out of the git repository and into an abstract string key,
+        // then call that key file in as a dependency.
         USER = "hotspot";
         PASS = "triplicateparadox";
         // Concatenate entire SQL address using JDBC.
@@ -26,9 +32,8 @@ public class SqlSender {
 
 
     /*
-     * Method 'addUser' takes a first and last name as strings and inserts them as a new
-     *  entry into the 'UserData' table. In the future, a unique identifier such as DeviceID
-     *  or MAC address might be used to tie a user to their primary key.
+     * Method 'addUser' takes a first name, last name, and googleID as strings and inserts them
+     *  as a new entry into the 'UserData' table.
      * Returns: 0 for success and 1 for error encountered.
      * Post: Inserts a new row into the UserData table of Hotspot.*
      */
@@ -102,6 +107,12 @@ public class SqlSender {
         return 0;
     }
 
+    /*
+     * Method 'addLoc' takes a latitude and longitude as doubles. Google gives these to 7 decimal
+     *  places, so that's what the table has room for.
+     * Returns: 0 for success and 1 for error encountered.
+     * Post: Inserts a new row into the LocData table of Hotspot.*
+     */
     public int addLoc(double latitude, double longitude){
 
 
@@ -168,6 +179,15 @@ public class SqlSender {
         return 0;
     }
 
+    /*
+     * Method 'getID' takes a string googleID, then returns the user's UserID primary key. It returns
+     *  a value of 0 if the user's GoogleID is not found in the table.
+     * Returns:
+     *          0 for 'not in database'
+     *          -1 for error
+     *          valid int(12) value if they exist
+     * Post: none
+     */
     public int getID (String GoogleID){
 
         PreparedStatement add;
