@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -20,13 +20,7 @@
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
 
-
-
     </android.support.design.widget.AppBarLayout>
-
-    <RelativeLayout
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
 
         <com.google.android.gms.common.SignInButton
             android:id="@+id/sign_in_button"
@@ -35,42 +29,47 @@
             android:layout_centerVertical="true"
             android:layout_centerHorizontal="true" />
 
-
-
-    </RelativeLayout>
-
-    <include layout="@layout/content_login" />
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/mapButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:src="@android:drawable/ic_dialog_map"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/resetButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|left"
-            android:layout_margin="@dimen/fab_margin"
-            android:src="@android:drawable/ic_dialog_info" />
+            android:src="@android:drawable/ic_dialog_info"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
 
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/signOutButton"
+                android:id="@+id/signOutButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:src="@android:drawable/button_onoff_indicator_off"
+            android:layout_alignParentBottom="true"
+            android:layout_toRightOf="@+id/resetButton"
+            android:layout_toEndOf="@+id/resetButton" />
+
+
+
+    <android.support.design.widget.FloatingActionButton
+            android:id="@+id/locationSendButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:src="@android:drawable/button_onoff_indicator_off"
-            android:layout_alignParentBottom="true"
-            android:layout_margin="@dimen/fab_margin"
-            android:layout_toRightOf="@+id/resetButton"
-            android:layout_toEndOf="@+id/resetButton"
-            />
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/mapButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="@dimen/fab_margin"
-            android:src="@android:drawable/ic_dialog_map" />
+            android:src="@android:drawable/ic_menu_send"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/mapButton"
+        android:layout_toStartOf="@+id/mapButton" />
 
 
-
-
-
-</android.support.design.widget.CoordinatorLayout>
+</RelativeLayout>

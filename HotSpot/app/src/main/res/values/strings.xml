@@ -3,11 +3,20 @@
     <string name="app_name">HotSpot</string>
     <string name="title_activity_maps">Map</string>
     <string name="button_text">Button that throws toast for testing.</string>
-    <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_login">HotSpot</string>
 
 
     <!-- Strings for sharedpreferences-->
-    <string name="GOOGLE_ID">net.nichnologist.net.google_id</string>
-    <string name="FIRSTRUN_BOOL">net.nichnologist.net.is_first_run</string>
+    <string name="GOOGLE_ID">net.nichnologist.hotspot.google_id</string>
+    <string name="FIRSTRUN_BOOL">net.nichnologist.hotspot.is_first_run</string>
+    <string name="FIRST_NAME">net.nichnologist.hotspot.first_name</string>
+    <string name="LAST_NAME">net.nichnologist.hotspot.last_name</string>
+    <string name="SIGNED_OUT">net.nichnologist.hotspot.signed_out</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
 
 </resources>
