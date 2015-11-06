@@ -9,8 +9,8 @@ android {
         applicationId "net.nichnologist.hotspot"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 3
-        versionName "0.18"
+        versionCode 4
+        versionName "0.30"
         multiDexEnabled true
     }
     buildTypes {
