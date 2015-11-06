@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,14 +16,10 @@ import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
-import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.plus.People;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
-import com.google.android.gms.plus.model.people.PersonBuffer;
 
 
 public class Login extends AppCompatActivity
@@ -92,7 +87,7 @@ public class Login extends AppCompatActivity
             Tools.toastShort("Error on reading shared preferences.", getApplicationContext());
         }
 
-        final Intent menuIntent = new Intent(this, MapsActivity2.class);
+        final Intent menuIntent = new Intent(this, MapsActivity.class);
 
         /*
         // Go straight to map if already signed in.

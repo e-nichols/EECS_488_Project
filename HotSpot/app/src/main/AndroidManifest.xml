@@ -45,10 +45,6 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MapsActivity"
-            android:label="@string/title_activity_maps" >
-        </activity>
-        <activity
             android:name=".Login"
             android:label="@string/title_activity_login"
             android:theme="@style/AppTheme.NoActionBar" >
@@ -59,7 +55,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MapsActivity2"
+            android:name=".MapsActivity"
             android:label="@string/title_activity_maps2"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
