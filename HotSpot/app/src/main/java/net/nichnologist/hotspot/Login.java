@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -48,7 +49,7 @@ public class Login extends AppCompatActivity
     private String personGooglePlusProfile;
 
     private Location lastLocation;
-    SqlConnector connector;
+    private SqlConnector connector;
 
     /* Is there a ConnectionResult resolution in progress? */
     private boolean mIsResolving = false;
@@ -58,11 +59,15 @@ public class Login extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // standard oncreate
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // Instantiate ASync machinery. This is used for running network actions on a new
+        //  asynchronous thread.
         connector = new SqlConnector();
 
         buildGoogleApiClient();
@@ -70,23 +75,33 @@ public class Login extends AppCompatActivity
         prefs = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = prefs.edit();
 
+        // Sets a boolean whether or not this is the first time the application has been run
         try{
             Boolean isFirstRun = prefs.getBoolean("isFirstRun", true);
             if(isFirstRun){
-                Tools.toastShort("First run.", getApplicationContext());
+                //Tools.toastShort("First run.", getApplicationContext());
                 //editor.clear();
                 editor.putBoolean("isFirstRun", false);
                 editor.apply();
             }
             if(!isFirstRun){
-                Tools.toastShort("Not first run.", getApplicationContext());
+                //Tools.toastShort("Not first run.", getApplicationContext());
             }
         }
         catch(Exception e){
             Tools.toastShort("Error on reading shared preferences.", getApplicationContext());
         }
 
-        final Intent menuIntent = new Intent(this, MapsActivity.class);
+        final Intent menuIntent = new Intent(this, MapsActivity2.class);
+
+        /*
+        // Go straight to map if already signed in.
+        if(prefs.getString("net.nichnologist.hotspot.google_id", "X") != "X") {
+            startActivity(menuIntent);
+        }
+        */
+
+        ////////////// BUTTONS ONLY BELOW HERE IN ONCREATE//////////////////
 
         FloatingActionButton mapButton = (FloatingActionButton) findViewById(R.id.mapButton);
         mapButton.setOnClickListener(new View.OnClickListener() {
@@ -184,6 +199,9 @@ public class Login extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
+
+        // This forces the googleapiclient to connect when the app starts. Disabling it forces
+        //  the user to push the button first.
         if (mLogin_GoogleApiClient != null)
             mLogin_GoogleApiClient.connect();
     }
@@ -234,7 +252,11 @@ public class Login extends AppCompatActivity
 
         // Show a message to the user that we are signing in.
         Tools.toastShort("Signing in...", getApplicationContext());
+
+
     }
+
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -268,7 +290,7 @@ public class Login extends AppCompatActivity
         Tools.toastShort("Signed in", getApplicationContext());
 
         if (Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient) != null) {
-            Tools.toastShort("Current person not null (GOOD)", getApplicationContext());
+            //Tools.toastShort("Current person not null (GOOD)", getApplicationContext());
             currentPerson = Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient);
             personName = currentPerson.getDisplayName();
             personPhoto = currentPerson.getImage().getUrl();
@@ -284,8 +306,9 @@ public class Login extends AppCompatActivity
             Tools.toastShort("Applied prefs", getApplicationContext());
         }
         else{
-            Tools.toastShort("Current person is null (BAD)", getApplicationContext());
+            //Tools.toastShort("Current person is null (BAD)", getApplicationContext());
         }
+
     }
 
     private void onSignOutClicked() {
@@ -296,7 +319,6 @@ public class Login extends AppCompatActivity
             mLogin_GoogleApiClient.disconnect();
         }
 
-        Tools.toastShort("Signed out", getApplicationContext());
     }
 
     /*

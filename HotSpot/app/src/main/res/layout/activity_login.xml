@@ -20,11 +20,7 @@
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
 
-
-
     </android.support.design.widget.AppBarLayout>
-
-
 
         <com.google.android.gms.common.SignInButton
             android:id="@+id/sign_in_button"
