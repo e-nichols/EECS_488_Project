@@ -18,19 +18,11 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            />
 
     </android.support.design.widget.AppBarLayout>
 
-    <ImageView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="@drawable/sun_vertical_fullsize"
-        android:scaleType = "fitXY"
-        />
-
     <include layout="@layout/content_login" />
-
-
 
 </android.support.design.widget.CoordinatorLayout>
