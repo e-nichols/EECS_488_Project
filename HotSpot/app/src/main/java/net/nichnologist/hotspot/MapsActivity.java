@@ -92,6 +92,8 @@ public class MapsActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        connector = new SqlConnector();
+
         ////// BEGIN NONSTANDARD ///////
 
         setUpMapIfNeeded();
