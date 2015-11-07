@@ -99,16 +99,6 @@ public class Login extends AppCompatActivity
 
         ////////////// BUTTONS ONLY BELOW HERE IN ONCREATE//////////////////
 
-        FloatingActionButton mapButton = (FloatingActionButton) findViewById(R.id.mapButton);
-        mapButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Passing through to map", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-                startActivity(menuIntent);
-                finish();
-            }
-        });
 
         FloatingActionButton resetButton = (FloatingActionButton) findViewById(R.id.resetButton);
         resetButton.setOnClickListener(new View.OnClickListener() {
@@ -117,19 +107,6 @@ public class Login extends AppCompatActivity
                 editor.clear().apply();
                 Snackbar.make(view, "Deleting shared preferences", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-            }
-        });
-
-        FloatingActionButton locationSendButton = (FloatingActionButton) findViewById(R.id.locationSendButton);
-        locationSendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(sendNewLocationPoint()){
-                    Tools.toastShort("send method completed", getApplicationContext());
-                }
-                else{
-                    Tools.toastShort("send method caught exception, returned false", getApplicationContext());
-                }
             }
         });
 
