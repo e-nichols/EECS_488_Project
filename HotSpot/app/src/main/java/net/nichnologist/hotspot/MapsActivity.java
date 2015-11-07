@@ -161,9 +161,16 @@ public class MapsActivity extends AppCompatActivity
         if (id == R.id.action_settings) {
             return true;
         }
+        if (id == R.id.action_google_sign_out) {
+            onSignOutClicked();
+            return true;
+        }
+
 
         return super.onOptionsItemSelected(item);
     }
+
+
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -297,7 +304,7 @@ public class MapsActivity extends AppCompatActivity
             }
         } else {
             // Show the signed-out UI
-            Tools.toastShort(getString(R.string.SIGNED_OUT), getApplicationContext());
+            //Tools.toastShort(getString(R.string.SIGNED_OUT), getApplicationContext());
         }
     }
 
@@ -330,11 +337,11 @@ public class MapsActivity extends AppCompatActivity
         //Plus.PeopleApi.load(mLogin_GoogleApiClient, "me");
 
         // Show the signed-in UI
-        Tools.toastShort("Signed in", getApplicationContext());
+        Tools.toastShort("Welcome back " + prefs.getString(getString(R.string.FIRST_NAME), ""), getApplicationContext());
         goToLastLocation("move");
 
         if (Plus.PeopleApi.getCurrentPerson(mMap_GoogleApiClient) != null) {
-            Tools.toastShort("Current person not null (GOOD)", getApplicationContext());
+            //Tools.toastShort("Current person not null (GOOD)", getApplicationContext());
             currentPerson = Plus.PeopleApi.getCurrentPerson(mMap_GoogleApiClient);
             personName = currentPerson.getDisplayName();
             personPhoto = currentPerson.getImage().getUrl();
@@ -361,7 +368,12 @@ public class MapsActivity extends AppCompatActivity
             Plus.AccountApi.clearDefaultAccount(mMap_GoogleApiClient);
             mMap_GoogleApiClient.disconnect();
         }
-
+        editor.remove(getString(R.string.GOOGLE_ID));
+        editor.apply();
+        final Intent intent_loginScreen = new Intent(this, Login.class);
+        Tools.toastShort("Signed out", getApplicationContext());
+        startActivity(intent_loginScreen);
+        finish();
     }
 
     private class SqlConnector extends AsyncTask<String, Void, String> {

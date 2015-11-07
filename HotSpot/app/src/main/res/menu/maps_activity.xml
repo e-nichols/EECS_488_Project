@@ -8,4 +8,9 @@
         android:orderInCategory="100"
         app:showAsAction="never" />
 
+    <item android:id="@+id/action_google_sign_out"
+        android:title="@string/action__google_sign_out"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
 </menu>

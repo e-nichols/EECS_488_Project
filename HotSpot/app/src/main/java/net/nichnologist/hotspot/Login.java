@@ -89,12 +89,13 @@ public class Login extends AppCompatActivity
 
         final Intent menuIntent = new Intent(this, MapsActivity.class);
 
-        /*
+
         // Go straight to map if already signed in.
-        if(prefs.getString("net.nichnologist.hotspot.google_id", "X") != "X") {
+        if(!prefs.getString(getString(R.string.GOOGLE_ID), "X").equals("X")) {
             startActivity(menuIntent);
+            finish();
         }
-        */
+
 
         ////////////// BUTTONS ONLY BELOW HERE IN ONCREATE//////////////////
 
@@ -105,6 +106,7 @@ public class Login extends AppCompatActivity
                 Snackbar.make(view, "Passing through to map", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
                 startActivity(menuIntent);
+                finish();
             }
         });
 
@@ -153,7 +155,7 @@ public class Login extends AppCompatActivity
         updateLastLocation();
         try {
             connector.Connect();
-            Tools.toastLong(prefs.getString("net.nichnologist.hotspot.first_name", "failed to get firstname from prefs"), getApplicationContext());
+            Tools.toastLong(prefs.getString(getString(R.string.FIRST_NAME), "Failed to get firstname from prefs"), getApplicationContext());
             return true;
         }
         catch(Exception e){
@@ -235,7 +237,7 @@ public class Login extends AppCompatActivity
             }
         } else {
             // Show the signed-out UI
-            Tools.toastShort("Signed out", getApplicationContext());
+            //Tools.toastShort("Signed Out", getApplicationContext());
         }
     }
 
@@ -282,7 +284,7 @@ public class Login extends AppCompatActivity
         //Plus.PeopleApi.load(mLogin_GoogleApiClient, "me");
 
         // Show the signed-in UI
-        Tools.toastShort("Signed in", getApplicationContext());
+        //Tools.toastShort("Signed in", getApplicationContext());
 
         if (Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient) != null) {
             //Tools.toastShort("Current person not null (GOOD)", getApplicationContext());
@@ -292,16 +294,24 @@ public class Login extends AppCompatActivity
             personGooglePlusProfile = currentPerson.getUrl();
 
             //editor.clear();
-            editor.putString("net.nichnologist.hotspot.first_name", currentPerson.getName().getGivenName());
+            editor.putString(getString(R.string.FIRST_NAME), currentPerson.getName().getGivenName());
             editor.apply();
-            editor.putString("net.nichnologist.hotspot.last_name", currentPerson.getName().getFamilyName());
+            editor.putString(getString(R.string.LAST_NAME), currentPerson.getName().getFamilyName());
             editor.apply();
-            editor.putString("net.nichnologist.hotspot.google_id", currentPerson.getId());
+            editor.putString(getString(R.string.GOOGLE_ID), currentPerson.getId());
             editor.apply();
-            Tools.toastShort("Applied prefs", getApplicationContext());
+            //Tools.toastShort("Applied prefs", getApplicationContext());
         }
         else{
-            //Tools.toastShort("Current person is null (BAD)", getApplicationContext());
+            Tools.toastShort("Could not get Google ID data. There was an error.", getApplicationContext());
+        }
+
+        final Intent menuIntent = new Intent(this, MapsActivity.class);
+
+        // Go to map as soon as logged in.
+        if(!prefs.getString("net.nichnologist.hotspot.google_id", "X").equals("X")) {
+            startActivity(menuIntent);
+            finish();
         }
 
     }
@@ -331,9 +341,9 @@ public class Login extends AppCompatActivity
                 SqlSender sender = new SqlSender();
                 if( sender.getID(prefs.getString("net.nichnologist.hotspot.google_id", "X")) == 0){
                     sender.addUser(
-                            prefs.getString("net.nichnologist.hotspot.first_name", "NULL"),
-                            prefs.getString("net.nichnologist.hotspot.last_name", "NULL"),
-                            prefs.getString("net.nichnologist.hotspot.google_id", "NULL")
+                            prefs.getString(getString(R.string.FIRST_NAME), "NULL"),
+                            prefs.getString(getString(R.string.LAST_NAME), "NULL"),
+                            prefs.getString(getString(R.string.GOOGLE_ID), "NULL")
                     );
                 }
                 sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());
