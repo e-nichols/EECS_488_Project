@@ -120,14 +120,6 @@ public class Login extends AppCompatActivity
             }
         });
 
-        FloatingActionButton signOutButton = (FloatingActionButton) findViewById(R.id.signOutButton);
-        signOutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onSignOutClicked();
-            }
-        });
-
         FloatingActionButton locationSendButton = (FloatingActionButton) findViewById(R.id.locationSendButton);
         locationSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -155,7 +147,7 @@ public class Login extends AppCompatActivity
         updateLastLocation();
         try {
             connector.Connect();
-            Tools.toastLong(prefs.getString(getString(R.string.FIRST_NAME), "Failed to get firstname from prefs"), getApplicationContext());
+            Tools.toastLong(prefs.getString(getString(R.string.FIRST_NAME), "Failed to get firstname from prefs (API ERROR)"), getApplicationContext());
             return true;
         }
         catch(Exception e){

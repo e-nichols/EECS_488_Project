@@ -119,6 +119,12 @@ public class MapsActivity extends AppCompatActivity
             public void onClick(View v) {
                 Tools.toastShort("Have some toast text!", getApplicationContext());
                 goToLastLocation("animate");
+                if(sendNewLocationPoint()){
+                    Tools.toastShort("send method completed", getApplicationContext());
+                }
+                else{
+                    Tools.toastShort("send method caught exception, returned false", getApplicationContext());
+                }
             }
         });
 
@@ -130,6 +136,19 @@ public class MapsActivity extends AppCompatActivity
         }
         catch(Exception e){
             Tools.toastLong("Caught other exception (not cool): " + e.getMessage(), getApplicationContext());
+        }
+    }
+
+    private boolean sendNewLocationPoint() {
+        updateLastLocation();
+        try {
+            connector.Connect();
+            Tools.toastLong(prefs.getString(getString(R.string.FIRST_NAME), "Failed to get firstname from prefs"), getApplicationContext());
+            return true;
+        }
+        catch(Exception e){
+            Tools.toastLong(e.getMessage(), getApplicationContext());
+            return false;
         }
     }
 
