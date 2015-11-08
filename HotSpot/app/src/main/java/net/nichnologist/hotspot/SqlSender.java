@@ -1,6 +1,10 @@
 package net.nichnologist.hotspot;
+import com.google.android.gms.maps.model.LatLng;
+
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class SqlSender {
     // Define JDBC driver for MySQL Connection
@@ -30,6 +34,85 @@ public class SqlSender {
         full_url = DB_URL + DATABASE + "?user=" + USER + "&password=" + PASS + "&ssl=true";
     }
 
+    public List getSet(){
+        PreparedStatement add;
+        ResultSet result;
+        List list = new ArrayList();
+
+        try {
+            // Instantiate driver.
+            Class.forName(JDBC_DRIVER);
+            System.out.println("Ran driver.");
+
+            // Open connection to database.
+            System.out.print("Establishing database connection...");
+            conn = DriverManager.getConnection(full_url);
+            System.out.println(" SUCCESS!\n");
+        }
+        catch(Exception e){
+            System.out.println("Encountered error with JDBC connection driver.");
+            e.printStackTrace(System.out);
+            return null;
+        }
+
+        try{
+            System.out.print("Adding user records to table...");
+			
+			/* The PreparedStatement 'add' is a tool that helps prevent SQL Injection
+			 *  attacks. By using the '?' identifier and the 'setString' method, PreparedStatements
+			 *  eliminate escape characters and malicious user input. So someone putting their 
+			 *  last name as 'Smith"); DROP EVERYTHING OH SHIT;' won't damage your tables.
+			 */
+            String sql = "SELECT * from LocData";
+            add = conn.prepareStatement(sql);
+            System.out.println(add);
+        }
+        catch(SQLException se){
+            System.out.println("Encountered error parsing user input into query statement.");
+            se.printStackTrace(System.out);
+            return null;
+        }
+
+        try{
+            // Execute query over JDBC SQL connection on port 3306 with SSL.
+            System.out.println("Requesting location data...");
+            System.out.println(add);
+            result = add.executeQuery();
+            //System.out.println(" SUCCESS!\n");
+
+            try{
+
+                while (result.next()) {
+                    double lat = result.getDouble("Lat");
+                    double lon = result.getDouble("Lon");
+                    LatLng latlon = new LatLng(lat,lon);
+                    list.add(latlon);
+                }
+            }
+            catch(SQLException e){
+                e.printStackTrace();
+            }
+
+        }
+        catch(SQLException se) {
+            System.out.println(" FAIL!\n");
+            System.out.println("Query execution failed with the following errors:");
+            //se.printStackTrace();
+            se.printStackTrace(System.out);
+            System.out.println("Ensure user input is valid and try again.");
+            return null;
+        }
+
+        try {
+            if(conn != null)
+                conn.close();
+        } catch(SQLException se) {
+            System.out.println("Error closing connection. Was connection opened?");
+            se.printStackTrace(System.out);
+        }
+        System.out.println("Successfully added new user to UserData.");
+        return list;
+    }
 
     /*
      * Method 'addUser' takes a first name, last name, and googleID as strings and inserts them

@@ -53,12 +53,6 @@ public class MapsActivity extends AppCompatActivity
 
     private SqlConnector connector;
 
-    // Used for GET action on Google Sign-in data.
-    private Person currentPerson;
-    private String personName;
-    private String personPhoto;
-    private String personGooglePlusProfile;
-
     private SqlSender sender;
 
     // Declare object for storing local data after app destroy.
@@ -74,8 +68,6 @@ public class MapsActivity extends AppCompatActivity
 
     /* Should we automatically resolve ConnectionResults when possible? */
     private boolean mShouldResolve = false;
-
-    HeatmapTileProvider heatmapProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +107,7 @@ public class MapsActivity extends AppCompatActivity
 
         prefs = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = prefs.edit();
+        editor.apply();
     }
 
     @Override
@@ -131,10 +124,9 @@ public class MapsActivity extends AppCompatActivity
             public void onClick(View v) {
                 Tools.toastShort("Have some toast text!", getApplicationContext());
                 goToLastLocation("animate");
-                if(sendNewLocationPoint()){
+                if (sendNewLocationPoint()) {
                     Tools.toastShort("send method completed", getApplicationContext());
-                }
-                else{
+                } else {
                     Tools.toastShort("send method caught exception, returned false", getApplicationContext());
                 }
                 addHeatMap();
@@ -308,10 +300,6 @@ public class MapsActivity extends AppCompatActivity
         super.onStop();
     }
 
-    public void onClick(View v) {
-        // ...
-    }
-
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         // Could not connect to Google Play Services.  The user needs to select an account,
@@ -349,7 +337,7 @@ public class MapsActivity extends AppCompatActivity
         List<LatLng> list;
 
         // Get the data: latitude/longitude positions of police stations.
-        list = new ArrayList<LatLng>();
+        list = new ArrayList<>();
         list.add(0, new LatLng(38.9731127 , -95.2782564));
         list.add(1, new LatLng(38.9731200 , -95.2782864));
         list.add(2, new LatLng(38.9731895 , -95.2782950));
@@ -416,17 +404,14 @@ public class MapsActivity extends AppCompatActivity
 
         if (Plus.PeopleApi.getCurrentPerson(mMap_GoogleApiClient) != null) {
             //Tools.toastShort("Current person not null (GOOD)", getApplicationContext());
-            currentPerson = Plus.PeopleApi.getCurrentPerson(mMap_GoogleApiClient);
-            personName = currentPerson.getDisplayName();
-            personPhoto = currentPerson.getImage().getUrl();
-            personGooglePlusProfile = currentPerson.getUrl();
+            Person currentPerson = Plus.PeopleApi.getCurrentPerson(mMap_GoogleApiClient);
 
             //editor.clear();
-            editor.putString("net.nichnologist.hotspot.first_name", currentPerson.getName().getGivenName());
+            editor.putString(getString(R.string.FIRST_NAME), currentPerson.getName().getGivenName());
             editor.apply();
-            editor.putString("net.nichnologist.hotspot.last_name", currentPerson.getName().getFamilyName());
+            editor.putString(getString(R.string.LAST_NAME), currentPerson.getName().getFamilyName());
             editor.apply();
-            editor.putString("net.nichnologist.hotspot.google_id", currentPerson.getId());
+            editor.putString(getString(R.string.GOOGLE_ID), currentPerson.getId());
             editor.apply();
             //Tools.toastShort("Applied prefs", getApplicationContext());
         }
@@ -455,12 +440,11 @@ public class MapsActivity extends AppCompatActivity
         protected String doInBackground(String... urls) {
             String response = "";
             try {
-                SqlSender sender = new SqlSender();
-                if( sender.getID(prefs.getString("net.nichnologist.hotspot.google_id", "X")) == 0){
+                if( sender.getID(prefs.getString(getString(R.string.GOOGLE_ID), "X")) == 0){
                     sender.addUser(
-                            prefs.getString("net.nichnologist.hotspot.first_name", "NULL"),
-                            prefs.getString("net.nichnologist.hotspot.last_name", "NULL"),
-                            prefs.getString("net.nichnologist.hotspot.google_id", "NULL")
+                            prefs.getString(getString(R.string.FIRST_NAME), "NULL"),
+                            prefs.getString(getString(R.string.LAST_NAME), "NULL"),
+                            prefs.getString(getString(R.string.GOOGLE_ID), "NULL")
                     );
                 }
                 sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());

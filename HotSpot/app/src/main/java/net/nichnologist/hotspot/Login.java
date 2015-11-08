@@ -37,20 +37,15 @@ public class Login extends AppCompatActivity
     private static final int RC_SIGN_IN = 0;
     public static final String TAG = Login.class.getSimpleName();
 
-    // Used for GET action on Google Sign-in data.
-    private Person currentPerson;
-    private String personName;
-    private String personPhoto;
-    private String personGooglePlusProfile;
-
     private Location lastLocation;
-    private SqlConnector connector;
 
     /* Is there a ConnectionResult resolution in progress? */
     private boolean mIsResolving = false;
 
     /* Should we automatically resolve ConnectionResults when possible? */
     private boolean mShouldResolve = false;
+
+    private SqlConnector connector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,10 +55,6 @@ public class Login extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        // Instantiate ASync machinery. This is used for running network actions on a new
-        //  asynchronous thread.
-        connector = new SqlConnector();
 
         buildGoogleApiClient();
 
@@ -137,12 +128,7 @@ public class Login extends AppCompatActivity
     private void updateLastLocation(){
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mLogin_GoogleApiClient);
-        /*
-        if (lastLocation != null) {
-            latLon = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-            // Location update actions
-        }
-        */
+
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -160,8 +146,6 @@ public class Login extends AppCompatActivity
     public void onConnectionSuspended(int i) {
         Tools.toastShort("Connection Suspended", getApplicationContext());
     }
-
-
 
     @Override
     protected void onStart() {
@@ -226,8 +210,6 @@ public class Login extends AppCompatActivity
 
     }
 
-
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -261,10 +243,7 @@ public class Login extends AppCompatActivity
 
         if (Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient) != null) {
             //Tools.toastShort("Current person not null (GOOD)", getApplicationContext());
-            currentPerson = Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient);
-            personName = currentPerson.getDisplayName();
-            personPhoto = currentPerson.getImage().getUrl();
-            personGooglePlusProfile = currentPerson.getUrl();
+            Person currentPerson = Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient);
 
             //editor.clear();
             editor.putString(getString(R.string.FIRST_NAME), currentPerson.getName().getGivenName());
@@ -299,13 +278,6 @@ public class Login extends AppCompatActivity
 
     }
 
-    /*
-    @Override
-    public void onResult(People.LoadPeopleResult loadPeopleResult) {
-
-    }
-    */
-
     private class SqlConnector extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
@@ -332,9 +304,5 @@ public class Login extends AppCompatActivity
 
             //Tools.toastLong(task.doInBackground(), getApplicationContext());
         }
-
-
     }
-
-
 }
