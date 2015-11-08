@@ -79,16 +79,17 @@ public class Login extends AppCompatActivity
                 editor.putBoolean("isFirstRun", false);
                 editor.apply();
             }
+            /*
             if(!isFirstRun){
-                //Tools.toastShort("Not first run.", getApplicationContext());
+                Tools.toastShort("Not first run.", getApplicationContext());
             }
+            */
         }
         catch(Exception e){
             Tools.toastShort("Error on reading shared preferences.", getApplicationContext());
         }
 
         final Intent menuIntent = new Intent(this, MapsActivity.class);
-
 
         // Go straight to map if already signed in.
         if(!prefs.getString(getString(R.string.GOOGLE_ID), "X").equals("X")) {
@@ -204,10 +205,13 @@ public class Login extends AppCompatActivity
                 // error dialog.
                 Tools.toastLong(connectionResult.getErrorMessage(), getApplicationContext());
             }
-        } else {
-            // Show the signed-out UI
-            //Tools.toastShort("Signed Out", getApplicationContext());
         }
+        /*
+        else {
+            // Show the signed-out UI
+            Tools.toastShort("Signed Out", getApplicationContext());
+        }
+        */
     }
 
     private void onSignInClicked() {

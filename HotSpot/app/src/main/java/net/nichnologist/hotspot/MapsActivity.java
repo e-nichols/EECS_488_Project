@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -29,8 +30,15 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.TileOverlay;
+import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.google.maps.android.heatmaps.Gradient;
+import com.google.maps.android.heatmaps.HeatmapTileProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MapsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -66,6 +74,8 @@ public class MapsActivity extends AppCompatActivity
 
     /* Should we automatically resolve ConnectionResults when possible? */
     private boolean mShouldResolve = false;
+
+    HeatmapTileProvider heatmapProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,6 +137,7 @@ public class MapsActivity extends AppCompatActivity
                 else{
                     Tools.toastShort("send method caught exception, returned false", getApplicationContext());
                 }
+                addHeatMap();
             }
         });
 
@@ -323,10 +334,52 @@ public class MapsActivity extends AppCompatActivity
                 // error dialog.
                 Tools.toastLong(connectionResult.getErrorMessage(), getApplicationContext());
             }
-        } else {
-            // Show the signed-out UI
-            //Tools.toastShort(getString(R.string.SIGNED_OUT), getApplicationContext());
         }
+        /*
+        else {
+            // Show the signed-out UI
+            Tools.toastShort(getString(R.string.SIGNED_OUT), getApplicationContext());
+        }
+        */
+    }
+
+    private void addHeatMap() {
+        TileOverlay mOverlay;
+        HeatmapTileProvider mProvider;
+        List<LatLng> list;
+
+        // Get the data: latitude/longitude positions of police stations.
+        list = new ArrayList<LatLng>();
+        list.add(0, new LatLng(38.9731127 , -95.2782564));
+        list.add(1, new LatLng(38.9731200 , -95.2782864));
+        list.add(2, new LatLng(38.9731895 , -95.2782950));
+        list.add(3, new LatLng(38.9731301 , -95.2782604));
+        list.add(4, new LatLng(38.9731750 , -95.2782465));
+        list.add(5, new LatLng(38.9731150 , -95.2782168));
+        list.add(6, new LatLng(38.9731900 , -95.2782050));
+
+        int[] colors = {
+                Color.rgb(102, 225, 0), // green
+                Color.rgb(255, 0, 0)    // red
+        };
+
+        float[] startPoints = {
+                0.2f, 1f
+        };
+
+        Gradient gradient = new Gradient(colors, startPoints);
+
+        // Create a heat map tile provider, passing it the latlngs of the police stations.
+        mProvider = new HeatmapTileProvider.Builder()
+                .data(list)
+                .radius(30)
+                .opacity(0.5)
+                .gradient(gradient)
+                .build();
+
+        // Add a tile overlay to the map, using the heat map tile provider.
+        mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
+        mOverlay.isVisible();
     }
 
     @Override
