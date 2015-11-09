@@ -101,6 +101,7 @@ public class MapsActivity extends AppCompatActivity
         ////// BEGIN NONSTANDARD ///////
 
         list = new ArrayList<>();
+        list.add(new LatLng(0, 0));
         connector_pushLoc = new SqlConnector_PushLoc();
         connector_getLocs = new SqlConnector_GetLocs();
         connector_getLocs.Connect();
@@ -134,10 +135,9 @@ public class MapsActivity extends AppCompatActivity
         test_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Tools.toastShort("Have some toast text!", getApplicationContext());
                 goToLastLocation("animate");
                 if (sendNewLocationPoint()) {
-                    Tools.toastShort("send method completed", getApplicationContext());
+                    //Tools.toastShort("send method completed", getApplicationContext());
                 } else {
                     Tools.toastShort("send method caught exception, returned false", getApplicationContext());
                 }
@@ -347,9 +347,6 @@ public class MapsActivity extends AppCompatActivity
         TileOverlay mOverlay;
         HeatmapTileProvider mProvider;
         connector_getLocs.Connect();
-        list.add(new LatLng(38.9731127 , -95.2782564));
-        list.add(new LatLng(38.9731200 , -95.2782864));
-        list.add(new LatLng(38.9731895 , -95.2782950));
 
         int[] colors = {
                 Color.rgb(102, 225, 0), // green
@@ -480,6 +477,7 @@ public class MapsActivity extends AppCompatActivity
                 System.out.println(latlon.latitude);
                 System.out.println("printing long");
                 System.out.println(latlon.longitude);
+                return "Finished getLocs";
             } catch (Exception e) {
                 System.out.println("Caught exception getting locations:");
                 e.printStackTrace();
