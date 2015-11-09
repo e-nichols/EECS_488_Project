@@ -50,8 +50,10 @@ public class MapsActivity extends AppCompatActivity
     Button test_button;
     Location lastLocation;
     LatLng latLon;
+    List<LatLng> list;
 
-    private SqlConnector connector;
+    private SqlConnector_PushLoc connector_pushLoc;
+    private SqlConnector_GetLocs connector_getLocs;
 
     private SqlSender sender;
 
@@ -94,9 +96,15 @@ public class MapsActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        connector = new SqlConnector();
+
 
         ////// BEGIN NONSTANDARD ///////
+
+        list = new ArrayList<>();
+        connector_pushLoc = new SqlConnector_PushLoc();
+        connector_getLocs = new SqlConnector_GetLocs();
+        connector_getLocs.Connect();
+
 
         setUpMapIfNeeded();
 
@@ -108,6 +116,10 @@ public class MapsActivity extends AppCompatActivity
         prefs = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = prefs.edit();
         editor.apply();
+    }
+
+    public void setList(List l){
+        list = l;
     }
 
     @Override
@@ -147,7 +159,7 @@ public class MapsActivity extends AppCompatActivity
     private boolean sendNewLocationPoint() {
         updateLastLocation();
         try {
-            connector.Connect();
+            connector_pushLoc.Connect();
             Tools.toastLong(prefs.getString(getString(R.string.FIRST_NAME), "Failed to get firstname from prefs"), getApplicationContext());
             return true;
         }
@@ -334,17 +346,10 @@ public class MapsActivity extends AppCompatActivity
     private void addHeatMap() {
         TileOverlay mOverlay;
         HeatmapTileProvider mProvider;
-        List<LatLng> list;
-
-        // Get the data: latitude/longitude positions of police stations.
-        list = new ArrayList<>();
-        list.add(0, new LatLng(38.9731127 , -95.2782564));
-        list.add(1, new LatLng(38.9731200 , -95.2782864));
-        list.add(2, new LatLng(38.9731895 , -95.2782950));
-        list.add(3, new LatLng(38.9731301 , -95.2782604));
-        list.add(4, new LatLng(38.9731750 , -95.2782465));
-        list.add(5, new LatLng(38.9731150 , -95.2782168));
-        list.add(6, new LatLng(38.9731900 , -95.2782050));
+        connector_getLocs.Connect();
+        list.add(new LatLng(38.9731127 , -95.2782564));
+        list.add(new LatLng(38.9731200 , -95.2782864));
+        list.add(new LatLng(38.9731895 , -95.2782950));
 
         int[] colors = {
                 Color.rgb(102, 225, 0), // green
@@ -360,8 +365,8 @@ public class MapsActivity extends AppCompatActivity
         // Create a heat map tile provider, passing it the latlngs of the police stations.
         mProvider = new HeatmapTileProvider.Builder()
                 .data(list)
-                .radius(30)
-                .opacity(0.5)
+                .radius(20)
+                .opacity(0.7)
                 .gradient(gradient)
                 .build();
 
@@ -435,7 +440,7 @@ public class MapsActivity extends AppCompatActivity
         finish();
     }
 
-    private class SqlConnector extends AsyncTask<String, Void, String> {
+    private class SqlConnector_PushLoc extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
             String response = "";
@@ -455,7 +460,35 @@ public class MapsActivity extends AppCompatActivity
         }
 
         public void Connect(){
-            MapsActivity.SqlConnector task = new SqlConnector();
+            MapsActivity.SqlConnector_PushLoc task = new SqlConnector_PushLoc();
+            task.execute();
+
+            //Tools.toastLong(task.doInBackground(), getApplicationContext());
+        }
+
+
+    }
+
+    private class SqlConnector_GetLocs extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                List<LatLng> tempList = (ArrayList<LatLng>) sender.getSet();
+                setList(tempList);
+                LatLng latlon = tempList.get(0);
+                System.out.println("printing lat");
+                System.out.println(latlon.latitude);
+                System.out.println("printing long");
+                System.out.println(latlon.longitude);
+            } catch (Exception e) {
+                System.out.println("Caught exception getting locations:");
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        public void Connect(){
+            MapsActivity.SqlConnector_GetLocs task = new SqlConnector_GetLocs();
             task.execute();
 
             //Tools.toastLong(task.doInBackground(), getApplicationContext());

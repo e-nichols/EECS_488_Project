@@ -1,4 +1,5 @@
 package net.nichnologist.hotspot;
+
 import com.google.android.gms.maps.model.LatLng;
 
 import java.sql.*;
@@ -37,11 +38,15 @@ public class SqlSender {
     public List getSet(){
         PreparedStatement add;
         ResultSet result;
-        List list = new ArrayList();
+        List<LatLng> list = new ArrayList<>();
+        double lat;
+        double lon;
+        LatLng latlon;
 
         try {
             // Instantiate driver.
             Class.forName(JDBC_DRIVER);
+            System.out.println("Running getSet()");
             System.out.println("Ran driver.");
 
             // Open connection to database.
@@ -56,7 +61,7 @@ public class SqlSender {
         }
 
         try{
-            System.out.print("Adding user records to table...");
+            System.out.print("Executing query...");
 			
 			/* The PreparedStatement 'add' is a tool that helps prevent SQL Injection
 			 *  attacks. By using the '?' identifier and the 'setString' method, PreparedStatements
@@ -65,7 +70,6 @@ public class SqlSender {
 			 */
             String sql = "SELECT * from LocData";
             add = conn.prepareStatement(sql);
-            System.out.println(add);
         }
         catch(SQLException se){
             System.out.println("Encountered error parsing user input into query statement.");
@@ -80,19 +84,14 @@ public class SqlSender {
             result = add.executeQuery();
             //System.out.println(" SUCCESS!\n");
 
-            try{
 
-                while (result.next()) {
-                    double lat = result.getDouble("Lat");
-                    double lon = result.getDouble("Lon");
-                    LatLng latlon = new LatLng(lat,lon);
-                    list.add(latlon);
-                }
+            while (result.next()) {
+                lat = result.getDouble("Lat");
+                lon = result.getDouble("Lon");
+                latlon = new LatLng(lat,lon);
+                list.add(latlon);
             }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-
+            add.close();
         }
         catch(SQLException se) {
             System.out.println(" FAIL!\n");
@@ -110,7 +109,7 @@ public class SqlSender {
             System.out.println("Error closing connection. Was connection opened?");
             se.printStackTrace(System.out);
         }
-        System.out.println("Successfully added new user to UserData.");
+        System.out.println("Successfully acquired location list.");
         return list;
     }
 
