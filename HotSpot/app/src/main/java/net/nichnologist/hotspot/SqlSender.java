@@ -50,7 +50,7 @@ public class SqlSender {
             System.out.println("Ran driver.");
 
             // Open connection to database.
-            System.out.print("Establishing database connection...");
+            System.out.println("Establishing database connection...");
             conn = DriverManager.getConnection(full_url);
             System.out.println(" SUCCESS!\n");
         }
@@ -61,7 +61,7 @@ public class SqlSender {
         }
 
         try{
-            System.out.print("Executing query...");
+            System.out.println("Executing query...");
 			
 			/* The PreparedStatement 'add' is a tool that helps prevent SQL Injection
 			 *  attacks. By using the '?' identifier and the 'setString' method, PreparedStatements
@@ -80,7 +80,7 @@ public class SqlSender {
         try{
             // Execute query over JDBC SQL connection on port 3306 with SSL.
             System.out.println("Requesting location data...");
-            System.out.println(add);
+            //System.out.println(add);
             result = add.executeQuery();
             //System.out.println(" SUCCESS!\n");
 
@@ -129,7 +129,7 @@ public class SqlSender {
             System.out.println("Ran driver.");
 
             // Open connection to database.
-            System.out.print("Establishing database connection...");
+            System.out.println("Establishing database connection...");
             conn = DriverManager.getConnection(full_url);
             System.out.println(" SUCCESS!\n");
         }
@@ -140,7 +140,7 @@ public class SqlSender {
         }
 
         try{
-            System.out.print("Adding user records to table...");
+            System.out.println("Adding user records to table...");
 			
 			/* The PreparedStatement 'add' is a tool that helps prevent SQL Injection
 			 *  attacks. By using the '?' identifier and the 'setString' method, PreparedStatements
@@ -152,7 +152,7 @@ public class SqlSender {
             add.setString(1, first);
             add.setString(2, last);
             add.setString(3, GoogleID);
-            System.out.println(add);
+            //System.out.println(add);
         }
         catch(SQLException se){
             System.out.println("Encountered error parsing user input into query statement.");
@@ -220,7 +220,7 @@ public class SqlSender {
         }
         try{
             // Open connection to database
-            System.out.print("Establishing database connection...");
+            System.out.println("Establishing database connection...");
             conn = DriverManager.getConnection(full_url);
             System.out.println(" SUCCESS!\n");
         }
@@ -232,14 +232,14 @@ public class SqlSender {
 
 
         try{
-            System.out.print("Adding location records to table...");
+            System.out.println("Adding location records to table...");
 
             String sql = "INSERT INTO LocData (Time, Lat, Lon) VALUES (?, ?, ?)";
             add = conn.prepareStatement(sql);
             add.setTimestamp(1, sqlDate);
             add.setString(2, lat);
             add.setString(3, lon);
-            System.out.println(add);
+            //System.out.println(add);
             add.executeUpdate();
 
             System.out.println(" SUCCESS!\n");
@@ -287,7 +287,7 @@ public class SqlSender {
         }
         try{
             // Open connection to database
-            System.out.print("Establishing database connection...");
+            System.out.println("Establishing database connection...");
             conn = DriverManager.getConnection(full_url);
             System.out.println(" SUCCESS!\n");
         }
@@ -298,12 +298,12 @@ public class SqlSender {
         }
 
         try{
-            System.out.print("Querying table...");
+            System.out.println("Querying table...");
 
             String sql = "SELECT UserID from UserData where GoogleID=?";
             add = conn.prepareStatement(sql);
             add.setString(1, GoogleID);
-            System.out.println(add);
+            //System.out.println(add);
             result = add.executeQuery();
             System.out.println(" SUCCESS!\n");
         }

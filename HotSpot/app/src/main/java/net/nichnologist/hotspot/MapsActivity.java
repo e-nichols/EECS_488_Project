@@ -39,39 +39,49 @@ import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-public class MapsActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+public class MapsActivity
+            extends AppCompatActivity
+            implements NavigationView.OnNavigationItemSelectedListener,
+            GoogleApiClient.ConnectionCallbacks,
+            GoogleApiClient.OnConnectionFailedListener {
 
+    // Map object
     private GoogleMap mMap;
 
     Button test_button;
+
+    // Items used in location awarenesss
     Location lastLocation;
     LatLng latLon;
     List<LatLng> list;
 
+    // ASyncTask objects for network actions
     private SqlConnector_PushLoc connector_pushLoc;
-    private SqlConnector_GetLocs connector_getLocs;
 
+    // SqlSender helper object, contains machinery for SSL JDBC connection and queries.
     private SqlSender sender;
 
     // Declare object for storing local data after app destroy.
-    SharedPreferences prefs;
-    SharedPreferences.Editor editor;
+    private SharedPreferences prefs;
+    private SharedPreferences.Editor editor;
 
+    // APIClient object and necessary connection resolution variables
     private GoogleApiClient mMap_GoogleApiClient;
     private static final int RC_SIGN_IN = 0;
     public static final String TAG = Login.class.getSimpleName();
-
     /* Is there a ConnectionResult resolution in progress? */
     private boolean mIsResolving = false;
-
     /* Should we automatically resolve ConnectionResults when possible? */
     private boolean mShouldResolve = false;
 
+    /* OnCreate instantiates most of the variables. It builds the activity with Super, and connects
+        any interface elements in the XML to their code here in Java. It sets up the map as well.
+    PRE: None
+    POST: Instantiates LatLng list, ASyncTask connectors, SqlSender helper. Builds and connects
+            googleclientapi. Sets up map. Instantiates sharedpreferences and editor.
+    RETURN: None
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,7 +114,6 @@ public class MapsActivity extends AppCompatActivity
         //  just forcing an origin point onto the list so it won't be empty. Probably unnecessary but w/e.
         //list.add(new LatLng(0, 0));
         connector_pushLoc = new SqlConnector_PushLoc();
-        connector_getLocs = new SqlConnector_GetLocs();
         //connector_getLocs.Connect();
 
         setUpMapIfNeeded();
@@ -119,27 +128,41 @@ public class MapsActivity extends AppCompatActivity
         editor.apply();
 
 
-        ////////////// Define UI connectors /////////////////
+        ////////////// Define UI connectors/buttons /////////////////
 
         test_button = (Button) findViewById(R.id.toast_button);
         test_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 goToLastLocation("animate");
+                /*
                 if (sendNewLocationPoint()) {
-                    //Tools.toastShort("send method completed", getApplicationContext());
+                    System.out.println("Send new location point");
                 } else {
                     Tools.toastShort("send method caught exception, returned false", getApplicationContext());
                 }
-                addHeatMap();
+                */
+                new SqlConnector_GetLocs().execute();
             }
         });
     }
 
+    /* setList is a public method for setting values of list from external threads. It is required
+        as an interface for ASyncTasks
+    PRE: List list is declared (instantiation not required)
+    POST: sets list equal to an argument list.
+    RETURN: None
+     */
+    @SuppressWarnings("unchecked")
     public void setList(List l){
         list = l;
     }
 
+    /* OnResume is called when the activity Resumes (after a Pause/Stop that does not Destroy).
+    PRE: (OnCreate has always already run)
+    POST: Builds map if required, ensures clientapi connected, animates the map to the user's location.
+    RETURN: None
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -159,6 +182,11 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
+    /* sendNewLocationPoint gets the user's location and send it to the remote database.
+    PRE: GoogleAPIClient objects is connected, and API key is valid.
+    POST: Stores current location into lastLocation, then calls connector_pushLoc to send.
+    RETURN: TRUE if success, FALSE if fail.
+     */
     private boolean sendNewLocationPoint() {
         updateLastLocation();
         try {
@@ -172,6 +200,11 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
+    /* onBackPressed provides logic for the back button when drawers are open
+    PRE: None.
+    POST: Closes drawer if open, otherwise performs default back action.
+    RETURN: None.
+     */
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -182,6 +215,11 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
+    /* Provides action for settings pulldown
+    PRE: None
+    POST: Inflates pulldown window for settings and signout
+    RETURN: Returns true on completion.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -189,6 +227,11 @@ public class MapsActivity extends AppCompatActivity
         return true;
     }
 
+    /* onOptionsItemSelected detects menu pulldown presses
+    PRE: Pulldown is declared
+    POST: None
+    RETURN: TRUE if press if on defined item, else performs Suepr action.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -209,6 +252,11 @@ public class MapsActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    /* onNavigationItemSelected provides actions on sidebar button presses.
+    PRE: Sidebar exists, onNavigationItemSelectedListener is implemented.
+    POST: Takes action by button case.
+    RETURN: TRUE on completion.
+     */
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -263,10 +311,20 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
+    /* Does extra map actions.
+    PRE: Map exists (called by setUpMapIfNeeded()).
+    POST: Adds additional elements to the map.
+    RETURN: None.
+     */
     private void setUpMap() {
-        //optional map additions go here
+        //addHeatMap();
     }
 
+    /* buildGoogleApiClient builds the API client with location services and Plus privileges.
+    PRE: mMap_GoogleApiClient is declared.
+    POST: Builds API client object.
+    RETURN: None.
+     */
     protected synchronized void buildGoogleApiClient() {
         mMap_GoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -278,6 +336,11 @@ public class MapsActivity extends AppCompatActivity
                 .build();
     }
 
+    /* updateLastLocation
+    PRE: mMap_GoogleApiClient is connected and API key is valid.
+    POST: Stores the current location as a LatLng in lastLocation.
+    RETURN: None.
+     */
     private void updateLastLocation(){
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mMap_GoogleApiClient);
@@ -286,6 +349,11 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
+    /*
+    PRE:
+    POST:
+    RETURN:
+     */
     private void goToLastLocation(String how){
         updateLastLocation();
         CameraUpdate position = CameraUpdateFactory.newLatLngZoom(latLon, 13);
@@ -312,6 +380,7 @@ public class MapsActivity extends AppCompatActivity
     protected void onStop() {
         super.onStop();
     }
+
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -347,11 +416,10 @@ public class MapsActivity extends AppCompatActivity
     private void addHeatMap() {
         TileOverlay mOverlay;
         HeatmapTileProvider mProvider;
-        connector_getLocs.Connect();
 
         // best solution so far has been waiting.
         try{
-            Thread.sleep(2000);
+            Thread.sleep(5000);
         }
         catch(Exception e){
             e.printStackTrace();
@@ -483,26 +551,26 @@ public class MapsActivity extends AppCompatActivity
                 SqlSender send = new SqlSender();
                 List<LatLng> tempList = (ArrayList<LatLng>) send.getSet();
                 setList(tempList);
-                LatLng latlon = tempList.get(0);
-                System.out.println("printing lat");
-                System.out.println(latlon.latitude);
-                System.out.println("printing long");
-                System.out.println(latlon.longitude);
                 return "success";
             } catch (Exception e) {
                 System.out.println("Caught exception getting locations:");
                 e.printStackTrace();
+                return "fail";
             }
-            return "fail";
         }
 
-        public void Connect(){
-            MapsActivity.SqlConnector_GetLocs task = new SqlConnector_GetLocs();
-            task.execute();
+        @Override
+        protected void onPostExecute(String result) {
+            addHeatMap();
+        }
+        @Override
+        protected void onPreExecute() {
 
-            //Tools.toastLong(task.doInBackground(), getApplicationContext());
         }
 
+        @Override
+        protected void onProgressUpdate(Void... values) {
 
+        }
     }
 }
