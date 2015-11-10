@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.text.method.DateTimeKeyListener;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -37,7 +38,11 @@ import com.google.android.gms.plus.model.people.Person;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class MapsActivity
@@ -142,7 +147,9 @@ public class MapsActivity
                     Tools.toastShort("send method caught exception, returned false", getApplicationContext());
                 }
                 */
-                new SqlConnector_GetLocs().execute();
+
+
+
             }
         });
     }
@@ -317,7 +324,25 @@ public class MapsActivity
     RETURN: None.
      */
     private void setUpMap() {
-        //addHeatMap();
+        try{
+            java.util.Date d1 = new Date(1447002008);
+            java.util.Date d2 = new Date(1447185013);
+            Calendar cal = Calendar.getInstance();
+            cal.set(2015, 11, 07);
+            java.util.Date d3 = cal.getTime();
+
+            java.text.SimpleDateFormat sdf =
+                    new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+            String time1 = sdf.format(d1);
+            String time2 = sdf.format(d2);
+            String time3 = sdf.format(d3);
+
+            new SqlConnector_GetLocs().execute(new TimePair(Timestamp.valueOf(time1), Timestamp.valueOf(time3)));
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     /* buildGoogleApiClient builds the API client with location services and Plus privileges.
@@ -543,13 +568,15 @@ public class MapsActivity
 
     }
 
-    private class SqlConnector_GetLocs extends AsyncTask<String, Void, String> {
+    private class SqlConnector_GetLocs extends AsyncTask<TimePair, Void, String> {
         @SuppressWarnings("unchecked")
         @Override
-        protected String doInBackground(String... urls) {
+        protected String doInBackground(TimePair... datepair) {
             try {
                 SqlSender send = new SqlSender();
-                List<LatLng> tempList = (ArrayList<LatLng>) send.getSet();
+                System.out.println("First date: " + datepair[0].time1);
+                System.out.println("Second date: " + datepair[0].time2);
+                List<LatLng> tempList = (ArrayList<LatLng>) send.getSet(datepair[0].time1, datepair[0].time2);
                 setList(tempList);
                 return "success";
             } catch (Exception e) {
@@ -561,11 +588,12 @@ public class MapsActivity
 
         @Override
         protected void onPostExecute(String result) {
+            //TODO: clearHeatMap();
             addHeatMap();
         }
         @Override
         protected void onPreExecute() {
-
+            Tools.toastShort("Retrieving HeatMap...", getApplicationContext());
         }
 
         @Override

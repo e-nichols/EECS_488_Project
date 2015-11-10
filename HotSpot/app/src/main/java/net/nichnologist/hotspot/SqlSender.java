@@ -35,7 +35,7 @@ public class SqlSender {
         full_url = DB_URL + DATABASE + "?user=" + USER + "&password=" + PASS + "&ssl=true";
     }
 
-    public List getSet(){
+    public List getSet(java.sql.Timestamp time1, java.sql.Timestamp time2){
         PreparedStatement add;
         ResultSet result;
         List<LatLng> list = new ArrayList<>();
@@ -68,8 +68,11 @@ public class SqlSender {
 			 *  eliminate escape characters and malicious user input. So someone putting their 
 			 *  last name as 'Smith"); DROP EVERYTHING OH SHIT;' won't damage your tables.
 			 */
-            String sql = "SELECT * from LocData";
+            String sql = "SELECT * from LocData where  ?<Time and Time<?";
             add = conn.prepareStatement(sql);
+            add.setTimestamp(1, time1);
+            add.setTimestamp(2, time2);
+
         }
         catch(SQLException se){
             System.out.println("Encountered error parsing user input into query statement.");
@@ -197,7 +200,6 @@ public class SqlSender {
      */
     public int addLoc(double latitude, double longitude){
 
-
         String lat = String.valueOf(latitude);
         String lon = String.valueOf(longitude);
         PreparedStatement add;
@@ -205,8 +207,6 @@ public class SqlSender {
 
         java.sql.Timestamp sqlDate = new java.sql.Timestamp(datem.getTime());
         System.out.println("Got current time " + sqlDate);
-
-
 
         try {
             // Instantiate driver.
