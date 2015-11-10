@@ -39,6 +39,7 @@ import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class MapsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -96,16 +97,15 @@ public class MapsActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-
-
         ////// BEGIN NONSTANDARD ///////
 
         list = new ArrayList<>();
-        list.add(new LatLng(0, 0));
+        // This point is a bit of a hack. Rather than catch exceptions or wait for SQL returns, I'm
+        //  just forcing an origin point onto the list so it won't be empty. Probably unnecessary but w/e.
+        //list.add(new LatLng(0, 0));
         connector_pushLoc = new SqlConnector_PushLoc();
         connector_getLocs = new SqlConnector_GetLocs();
-        connector_getLocs.Connect();
-
+        //connector_getLocs.Connect();
 
         setUpMapIfNeeded();
 
@@ -117,19 +117,9 @@ public class MapsActivity extends AppCompatActivity
         prefs = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = prefs.edit();
         editor.apply();
-    }
 
-    public void setList(List l){
-        list = l;
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setUpMapIfNeeded();
-
-        // Connect API Client. MUST be done after client build, which is handled in onCreate.
-        mMap_GoogleApiClient.connect();
+        ////////////// Define UI connectors /////////////////
 
         test_button = (Button) findViewById(R.id.toast_button);
         test_button.setOnClickListener(new View.OnClickListener() {
@@ -144,6 +134,19 @@ public class MapsActivity extends AppCompatActivity
                 addHeatMap();
             }
         });
+    }
+
+    public void setList(List l){
+        list = l;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setUpMapIfNeeded();
+
+        // Connect API Client. MUST be done after client build, which is handled in onCreate.
+        mMap_GoogleApiClient.connect();
 
         try {
             goToLastLocation("animate");
@@ -160,7 +163,7 @@ public class MapsActivity extends AppCompatActivity
         updateLastLocation();
         try {
             connector_pushLoc.Connect();
-            Tools.toastLong(prefs.getString(getString(R.string.FIRST_NAME), "Failed to get firstname from prefs"), getApplicationContext());
+            //Tools.toastLong(prefs.getString(getString(R.string.FIRST_NAME), "Failed to get firstname from prefs"), getApplicationContext());
             return true;
         }
         catch(Exception e){
@@ -205,8 +208,6 @@ public class MapsActivity extends AppCompatActivity
 
         return super.onOptionsItemSelected(item);
     }
-
-
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -348,6 +349,14 @@ public class MapsActivity extends AppCompatActivity
         HeatmapTileProvider mProvider;
         connector_getLocs.Connect();
 
+        // best solution so far has been waiting.
+        try{
+            Thread.sleep(2000);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
         int[] colors = {
                 Color.rgb(102, 225, 0), // green
                 Color.rgb(255, 0, 0)    // red
@@ -375,7 +384,7 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG, "onActivityResult:" + requestCode + ":" + resultCode + ":" + data);
+            Log.d(TAG, "onActivityResult:" + requestCode + ":" + resultCode + ":" + data);
 
         if (requestCode == RC_SIGN_IN) {
             // If the error resolution was not successful we should not resolve further.
@@ -444,9 +453,9 @@ public class MapsActivity extends AppCompatActivity
             try {
                 if( sender.getID(prefs.getString(getString(R.string.GOOGLE_ID), "X")) == 0){
                     sender.addUser(
-                            prefs.getString(getString(R.string.FIRST_NAME), "NULL"),
-                            prefs.getString(getString(R.string.LAST_NAME), "NULL"),
-                            prefs.getString(getString(R.string.GOOGLE_ID), "NULL")
+                        prefs.getString(getString(R.string.FIRST_NAME), "NULL"),
+                        prefs.getString(getString(R.string.LAST_NAME), "NULL"),
+                        prefs.getString(getString(R.string.GOOGLE_ID), "NULL")
                     );
                 }
                 sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());
@@ -467,22 +476,24 @@ public class MapsActivity extends AppCompatActivity
     }
 
     private class SqlConnector_GetLocs extends AsyncTask<String, Void, String> {
+        @SuppressWarnings("unchecked")
         @Override
         protected String doInBackground(String... urls) {
             try {
-                List<LatLng> tempList = (ArrayList<LatLng>) sender.getSet();
+                SqlSender send = new SqlSender();
+                List<LatLng> tempList = (ArrayList<LatLng>) send.getSet();
                 setList(tempList);
                 LatLng latlon = tempList.get(0);
                 System.out.println("printing lat");
                 System.out.println(latlon.latitude);
                 System.out.println("printing long");
                 System.out.println(latlon.longitude);
-                return "Finished getLocs";
+                return "success";
             } catch (Exception e) {
                 System.out.println("Caught exception getting locations:");
                 e.printStackTrace();
             }
-            return null;
+            return "fail";
         }
 
         public void Connect(){
