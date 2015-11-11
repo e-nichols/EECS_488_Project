@@ -112,19 +112,6 @@ public class Login extends AppCompatActivity
 
     }
 
-    private boolean sendNewLocationPoint() {
-        updateLastLocation();
-        try {
-            connector.Connect();
-            Tools.toastLong(prefs.getString(getString(R.string.FIRST_NAME), "Failed to get firstname from prefs (API ERROR)"), getApplicationContext());
-            return true;
-        }
-        catch(Exception e){
-            Tools.toastLong(e.getMessage(), getApplicationContext());
-            return false;
-        }
-    }
-
     private void updateLastLocation(){
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mLogin_GoogleApiClient);
@@ -264,16 +251,6 @@ public class Login extends AppCompatActivity
         if(!prefs.getString("net.nichnologist.hotspot.google_id", "X").equals("X")) {
             startActivity(menuIntent);
             finish();
-        }
-
-    }
-
-    private void onSignOutClicked() {
-        // Clear the default account so that GoogleApiClient will not automatically
-        // connect in the future.
-        if (mLogin_GoogleApiClient.isConnected()) {
-            Plus.AccountApi.clearDefaultAccount(mLogin_GoogleApiClient);
-            mLogin_GoogleApiClient.disconnect();
         }
 
     }

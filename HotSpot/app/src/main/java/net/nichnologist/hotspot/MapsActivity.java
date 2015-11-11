@@ -10,7 +10,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.text.method.DateTimeKeyListener;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -38,9 +37,7 @@ import com.google.android.gms.plus.model.people.Person;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
-import java.sql.Date;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -430,6 +427,15 @@ public class MapsActivity
         }
     }
 
+    private void clearMap(){
+        try {
+            mOverlay.remove();
+        }
+        catch(Exception e){
+            System.out.println("Tried to clear map overlay, but was empty.");
+        }
+    }
+
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -579,6 +585,7 @@ public class MapsActivity
         finish();
     }
 
+
     private class SqlConnector_PushLoc extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
@@ -631,21 +638,14 @@ public class MapsActivity
         protected void onPostExecute(String result) {
             System.out.println(result);
             if(result.equals("success")){
-                try {
-                    mOverlay.remove();
-                }
-                catch(Exception e){
-                    e.printStackTrace();
-                }
+                clearMap();
                 addHeatMap();
             }
             else{
                 Tools.toastShort("No recent activity.", getApplicationContext());
             }
-
-
-
         }
+
         @Override
         protected void onPreExecute() {
             Tools.toastShort("Retrieving HeatMap...", getApplicationContext());
