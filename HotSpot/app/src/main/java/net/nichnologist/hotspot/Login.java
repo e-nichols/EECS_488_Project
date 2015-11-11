@@ -37,20 +37,15 @@ public class Login extends AppCompatActivity
     private static final int RC_SIGN_IN = 0;
     public static final String TAG = Login.class.getSimpleName();
 
-    // Used for GET action on Google Sign-in data.
-    private Person currentPerson;
-    private String personName;
-    private String personPhoto;
-    private String personGooglePlusProfile;
-
     private Location lastLocation;
-    private SqlConnector connector;
 
     /* Is there a ConnectionResult resolution in progress? */
     private boolean mIsResolving = false;
 
     /* Should we automatically resolve ConnectionResults when possible? */
     private boolean mShouldResolve = false;
+
+    private SqlConnector connector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,10 +55,6 @@ public class Login extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        // Instantiate ASync machinery. This is used for running network actions on a new
-        //  asynchronous thread.
-        connector = new SqlConnector();
 
         buildGoogleApiClient();
 
@@ -79,9 +70,11 @@ public class Login extends AppCompatActivity
                 editor.putBoolean("isFirstRun", false);
                 editor.apply();
             }
+            /*
             if(!isFirstRun){
-                //Tools.toastShort("Not first run.", getApplicationContext());
+                Tools.toastShort("Not first run.", getApplicationContext());
             }
+            */
         }
         catch(Exception e){
             Tools.toastShort("Error on reading shared preferences.", getApplicationContext());
@@ -89,24 +82,15 @@ public class Login extends AppCompatActivity
 
         final Intent menuIntent = new Intent(this, MapsActivity.class);
 
-        /*
         // Go straight to map if already signed in.
-        if(prefs.getString("net.nichnologist.hotspot.google_id", "X") != "X") {
+        if(!prefs.getString(getString(R.string.GOOGLE_ID), "X").equals("X")) {
             startActivity(menuIntent);
+            finish();
         }
-        */
+
 
         ////////////// BUTTONS ONLY BELOW HERE IN ONCREATE//////////////////
 
-        FloatingActionButton mapButton = (FloatingActionButton) findViewById(R.id.mapButton);
-        mapButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Passing through to map", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-                startActivity(menuIntent);
-            }
-        });
 
         FloatingActionButton resetButton = (FloatingActionButton) findViewById(R.id.resetButton);
         resetButton.setOnClickListener(new View.OnClickListener() {
@@ -115,27 +99,6 @@ public class Login extends AppCompatActivity
                 editor.clear().apply();
                 Snackbar.make(view, "Deleting shared preferences", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-            }
-        });
-
-        FloatingActionButton signOutButton = (FloatingActionButton) findViewById(R.id.signOutButton);
-        signOutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onSignOutClicked();
-            }
-        });
-
-        FloatingActionButton locationSendButton = (FloatingActionButton) findViewById(R.id.locationSendButton);
-        locationSendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(sendNewLocationPoint()){
-                    Tools.toastShort("send method completed", getApplicationContext());
-                }
-                else{
-                    Tools.toastShort("send method caught exception, returned false", getApplicationContext());
-                }
             }
         });
 
@@ -149,28 +112,10 @@ public class Login extends AppCompatActivity
 
     }
 
-    private boolean sendNewLocationPoint() {
-        updateLastLocation();
-        try {
-            connector.Connect();
-            Tools.toastLong(prefs.getString("net.nichnologist.hotspot.first_name", "failed to get firstname from prefs"), getApplicationContext());
-            return true;
-        }
-        catch(Exception e){
-            Tools.toastLong(e.getMessage(), getApplicationContext());
-            return false;
-        }
-    }
-
     private void updateLastLocation(){
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mLogin_GoogleApiClient);
-        /*
-        if (lastLocation != null) {
-            latLon = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-            // Location update actions
-        }
-        */
+
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -188,8 +133,6 @@ public class Login extends AppCompatActivity
     public void onConnectionSuspended(int i) {
         Tools.toastShort("Connection Suspended", getApplicationContext());
     }
-
-
 
     @Override
     protected void onStart() {
@@ -233,10 +176,13 @@ public class Login extends AppCompatActivity
                 // error dialog.
                 Tools.toastLong(connectionResult.getErrorMessage(), getApplicationContext());
             }
-        } else {
-            // Show the signed-out UI
-            Tools.toastShort("Signed out", getApplicationContext());
         }
+        /*
+        else {
+            // Show the signed-out UI
+            Tools.toastShort("Signed Out", getApplicationContext());
+        }
+        */
     }
 
     private void onSignInClicked() {
@@ -250,8 +196,6 @@ public class Login extends AppCompatActivity
 
 
     }
-
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -282,46 +226,34 @@ public class Login extends AppCompatActivity
         //Plus.PeopleApi.load(mLogin_GoogleApiClient, "me");
 
         // Show the signed-in UI
-        Tools.toastShort("Signed in", getApplicationContext());
+        //Tools.toastShort("Signed in", getApplicationContext());
 
         if (Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient) != null) {
             //Tools.toastShort("Current person not null (GOOD)", getApplicationContext());
-            currentPerson = Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient);
-            personName = currentPerson.getDisplayName();
-            personPhoto = currentPerson.getImage().getUrl();
-            personGooglePlusProfile = currentPerson.getUrl();
+            Person currentPerson = Plus.PeopleApi.getCurrentPerson(mLogin_GoogleApiClient);
 
             //editor.clear();
-            editor.putString("net.nichnologist.hotspot.first_name", currentPerson.getName().getGivenName());
+            editor.putString(getString(R.string.FIRST_NAME), currentPerson.getName().getGivenName());
             editor.apply();
-            editor.putString("net.nichnologist.hotspot.last_name", currentPerson.getName().getFamilyName());
+            editor.putString(getString(R.string.LAST_NAME), currentPerson.getName().getFamilyName());
             editor.apply();
-            editor.putString("net.nichnologist.hotspot.google_id", currentPerson.getId());
+            editor.putString(getString(R.string.GOOGLE_ID), currentPerson.getId());
             editor.apply();
-            Tools.toastShort("Applied prefs", getApplicationContext());
+            //Tools.toastShort("Applied prefs", getApplicationContext());
         }
         else{
-            //Tools.toastShort("Current person is null (BAD)", getApplicationContext());
+            Tools.toastShort("Could not get Google ID data. There was an error.", getApplicationContext());
+        }
+
+        final Intent menuIntent = new Intent(this, MapsActivity.class);
+
+        // Go to map as soon as logged in.
+        if(!prefs.getString("net.nichnologist.hotspot.google_id", "X").equals("X")) {
+            startActivity(menuIntent);
+            finish();
         }
 
     }
-
-    private void onSignOutClicked() {
-        // Clear the default account so that GoogleApiClient will not automatically
-        // connect in the future.
-        if (mLogin_GoogleApiClient.isConnected()) {
-            Plus.AccountApi.clearDefaultAccount(mLogin_GoogleApiClient);
-            mLogin_GoogleApiClient.disconnect();
-        }
-
-    }
-
-    /*
-    @Override
-    public void onResult(People.LoadPeopleResult loadPeopleResult) {
-
-    }
-    */
 
     private class SqlConnector extends AsyncTask<String, Void, String> {
         @Override
@@ -331,9 +263,9 @@ public class Login extends AppCompatActivity
                 SqlSender sender = new SqlSender();
                 if( sender.getID(prefs.getString("net.nichnologist.hotspot.google_id", "X")) == 0){
                     sender.addUser(
-                            prefs.getString("net.nichnologist.hotspot.first_name", "NULL"),
-                            prefs.getString("net.nichnologist.hotspot.last_name", "NULL"),
-                            prefs.getString("net.nichnologist.hotspot.google_id", "NULL")
+                            prefs.getString(getString(R.string.FIRST_NAME), "NULL"),
+                            prefs.getString(getString(R.string.LAST_NAME), "NULL"),
+                            prefs.getString(getString(R.string.GOOGLE_ID), "NULL")
                     );
                 }
                 sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());
@@ -349,9 +281,5 @@ public class Login extends AppCompatActivity
 
             //Tools.toastLong(task.doInBackground(), getApplicationContext());
         }
-
-
     }
-
-
 }

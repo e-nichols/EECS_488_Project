@@ -2,14 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:checkableBehavior="single">
-        <item android:id="@+id/nav_camara" android:icon="@android:drawable/ic_menu_camera"
-            android:title="Import" />
-        <item android:id="@+id/nav_gallery" android:icon="@android:drawable/ic_menu_gallery"
-            android:title="Gallery" />
-        <item android:id="@+id/nav_slideshow" android:icon="@android:drawable/ic_menu_slideshow"
-            android:title="Slideshow" />
-        <item android:id="@+id/nav_manage" android:icon="@android:drawable/ic_menu_manage"
-            android:title="Tools" />
+        <item android:id="@+id/last_30" android:icon="@android:drawable/ic_menu_camera"
+            android:title="Last half hour" />
+        <item android:id="@+id/last_60" android:icon="@android:drawable/ic_menu_gallery"
+            android:title="Last hour" />
+        <item android:id="@+id/last_120" android:icon="@android:drawable/ic_menu_slideshow"
+            android:title="Last two hours" />
+        <item android:id="@+id/last_360" android:icon="@android:drawable/ic_menu_manage"
+            android:title="Last six hours" />
+        <item android:id="@+id/last_day" android:icon="@android:drawable/ic_menu_manage"
+            android:title="Past day" />
     </group>
 
     <item android:title="Communicate">

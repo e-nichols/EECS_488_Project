@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -29,44 +30,63 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.TileOverlay;
+import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.google.maps.android.heatmaps.Gradient;
+import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
-public class MapsActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
 
+public class MapsActivity
+            extends AppCompatActivity
+            implements NavigationView.OnNavigationItemSelectedListener,
+            GoogleApiClient.ConnectionCallbacks,
+            GoogleApiClient.OnConnectionFailedListener {
+
+    // Map object
     private GoogleMap mMap;
+    TileOverlay mOverlay;
+    HeatmapTileProvider mProvider;
 
     Button test_button;
+
+    // Items used in location awarenesss
     Location lastLocation;
     LatLng latLon;
+    List<LatLng> list;
 
-    private SqlConnector connector;
+    // ASyncTask objects for network actions
+    private SqlConnector_PushLoc connector_pushLoc;
 
-    // Used for GET action on Google Sign-in data.
-    private Person currentPerson;
-    private String personName;
-    private String personPhoto;
-    private String personGooglePlusProfile;
-
+    // SqlSender helper object, contains machinery for SSL JDBC connection and queries.
     private SqlSender sender;
 
     // Declare object for storing local data after app destroy.
-    SharedPreferences prefs;
-    SharedPreferences.Editor editor;
+    private SharedPreferences prefs;
+    private SharedPreferences.Editor editor;
 
+    // APIClient object and necessary connection resolution variables
     private GoogleApiClient mMap_GoogleApiClient;
     private static final int RC_SIGN_IN = 0;
     public static final String TAG = Login.class.getSimpleName();
-
     /* Is there a ConnectionResult resolution in progress? */
     private boolean mIsResolving = false;
-
     /* Should we automatically resolve ConnectionResults when possible? */
     private boolean mShouldResolve = false;
 
+    /* OnCreate instantiates most of the variables. It builds the activity with Super, and connects
+        any interface elements in the XML to their code here in Java. It sets up the map as well.
+    PRE: None
+    POST: Instantiates LatLng list, ASyncTask connectors, SqlSender helper. Builds and connects
+            googleclientapi. Sets up map. Instantiates sharedpreferences and editor.
+    RETURN: None
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +114,13 @@ public class MapsActivity extends AppCompatActivity
 
         ////// BEGIN NONSTANDARD ///////
 
+        list = new ArrayList<>();
+        // This point is a bit of a hack. Rather than catch exceptions or wait for SQL returns, I'm
+        //  just forcing an origin point onto the list so it won't be empty. Probably unnecessary but w/e.
+        //list.add(new LatLng(0, 0));
+        connector_pushLoc = new SqlConnector_PushLoc();
+        //connector_getLocs.Connect();
+
         setUpMapIfNeeded();
 
         buildGoogleApiClient();
@@ -103,8 +130,46 @@ public class MapsActivity extends AppCompatActivity
 
         prefs = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = prefs.edit();
+        editor.apply();
+
+
+        ////////////// Define UI connectors/buttons /////////////////
+
+        test_button = (Button) findViewById(R.id.toast_button);
+        test_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                goToLastLocation("animate");
+                /*
+                if (sendNewLocationPoint()) {
+                    System.out.println("Send new location point");
+                } else {
+                    Tools.toastShort("send method caught exception, returned false", getApplicationContext());
+                }
+                */
+
+                sendNewLocationPoint();
+
+            }
+        });
     }
 
+    /* setList is a public method for setting values of list from external threads. It is required
+        as an interface for ASyncTasks
+    PRE: List list is declared (instantiation not required)
+    POST: sets list equal to an argument list.
+    RETURN: None
+     */
+    @SuppressWarnings("unchecked")
+    public void setList(List l){
+        list = l;
+    }
+
+    /* OnResume is called when the activity Resumes (after a Pause/Stop that does not Destroy).
+    PRE: (OnCreate has always already run)
+    POST: Builds map if required, ensures clientapi connected, animates the map to the user's location.
+    RETURN: None
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -112,15 +177,6 @@ public class MapsActivity extends AppCompatActivity
 
         // Connect API Client. MUST be done after client build, which is handled in onCreate.
         mMap_GoogleApiClient.connect();
-
-        test_button = (Button) findViewById(R.id.toast_button);
-        test_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Tools.toastShort("Have some toast text!", getApplicationContext());
-                goToLastLocation("animate");
-            }
-        });
 
         try {
             goToLastLocation("animate");
@@ -133,6 +189,29 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
+    /* sendNewLocationPoint gets the user's location and send it to the remote database.
+    PRE: GoogleAPIClient objects is connected, and API key is valid.
+    POST: Stores current location into lastLocation, then calls connector_pushLoc to send.
+    RETURN: TRUE if success, FALSE if fail.
+     */
+    private boolean sendNewLocationPoint() {
+        updateLastLocation();
+        try {
+            connector_pushLoc.Connect();
+            //Tools.toastLong(prefs.getString(getString(R.string.FIRST_NAME), "Failed to get firstname from prefs"), getApplicationContext());
+            return true;
+        }
+        catch(Exception e){
+            Tools.toastLong(e.getMessage(), getApplicationContext());
+            return false;
+        }
+    }
+
+    /* onBackPressed provides logic for the back button when drawers are open
+    PRE: None.
+    POST: Closes drawer if open, otherwise performs default back action.
+    RETURN: None.
+     */
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -143,6 +222,11 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
+    /* Provides action for settings pulldown
+    PRE: None
+    POST: Inflates pulldown window for settings and signout
+    RETURN: Returns true on completion.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -150,6 +234,11 @@ public class MapsActivity extends AppCompatActivity
         return true;
     }
 
+    /* onOptionsItemSelected detects menu pulldown presses
+    PRE: Pulldown is declared
+    POST: None
+    RETURN: TRUE if press if on defined item, else performs Suepr action.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -161,24 +250,61 @@ public class MapsActivity extends AppCompatActivity
         if (id == R.id.action_settings) {
             return true;
         }
+        if (id == R.id.action_google_sign_out) {
+            onSignOutClicked();
+            return true;
+        }
+
 
         return super.onOptionsItemSelected(item);
     }
 
+    /* onNavigationItemSelected provides actions on sidebar button presses.
+    PRE: Sidebar exists, onNavigationItemSelectedListener is implemented.
+    POST: Takes action by button case.
+    RETURN: TRUE on completion.
+     */
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camara) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
+        if (id == R.id.last_30) {
+            try{
+                new SqlConnector_GetLocs().execute(getTimePairFromNow(0,30));
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        } else if (id == R.id.last_60) {
+            try{
+                new SqlConnector_GetLocs().execute(getTimePairFromNow(1,0));
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        } else if (id == R.id.last_120) {
+            try{
+                new SqlConnector_GetLocs().execute(getTimePairFromNow(2,0));
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        } else if (id == R.id.last_360) {
+            try{
+                new SqlConnector_GetLocs().execute(getTimePairFromNow(6,0));
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        }else if (id == R.id.last_day) {
+            try{
+                new SqlConnector_GetLocs().execute(getTimePairFromNow(24,0));
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
@@ -219,10 +345,48 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
+    /* Does extra map actions.
+    PRE: Map exists (called by setUpMapIfNeeded()).
+    POST: Adds additional elements to the map.
+    RETURN: None.
+     */
     private void setUpMap() {
-        //optional map additions go here
+        try{
+            new SqlConnector_GetLocs().execute(getTimePairFromNow(48,0));
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
+    /* Generates TimePair object based on time from past to current
+    PRE: None.
+    POST: None.
+    RETURN: TimePair object with 2 timestamps. Uses parameters to find difference between current
+             time and past time.
+     */
+    public TimePair getTimePairFromNow(int hours, int minutes){
+
+            Calendar cal = Calendar.getInstance();
+            java.util.Date d1 = cal.getTime();
+            cal.add(Calendar.HOUR, hours * (-1));
+            cal.add(Calendar.MINUTE, minutes * (-1));
+            java.util.Date d2 = cal.getTime();
+
+            java.text.SimpleDateFormat sdf =
+                    new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
+            String time1 = sdf.format(d1);
+            String time2 = sdf.format(d2);
+
+            return new TimePair(Timestamp.valueOf(time2), Timestamp.valueOf(time1));
+    }
+
+    /* buildGoogleApiClient builds the API client with location services and Plus privileges.
+    PRE: mMap_GoogleApiClient is declared.
+    POST: Builds API client object.
+    RETURN: None.
+     */
     protected synchronized void buildGoogleApiClient() {
         mMap_GoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -234,6 +398,11 @@ public class MapsActivity extends AppCompatActivity
                 .build();
     }
 
+    /* updateLastLocation
+    PRE: mMap_GoogleApiClient is connected and API key is valid.
+    POST: Stores the current location as a LatLng in lastLocation.
+    RETURN: None.
+     */
     private void updateLastLocation(){
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mMap_GoogleApiClient);
@@ -242,6 +411,11 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
+    /* Helper method that is called to move the map to the user's location.
+    PRE: mMap is instantiated
+    POST: Moves map to the user's location, either instantly, or by animating to them.
+    RETURN: None.
+     */
     private void goToLastLocation(String how){
         updateLastLocation();
         CameraUpdate position = CameraUpdateFactory.newLatLngZoom(latLon, 13);
@@ -252,6 +426,16 @@ public class MapsActivity extends AppCompatActivity
             mMap.animateCamera(position);
         }
     }
+
+    private void clearMap(){
+        try {
+            mOverlay.remove();
+        }
+        catch(Exception e){
+            System.out.println("Tried to clear map overlay, but was empty.");
+        }
+    }
+
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -269,9 +453,6 @@ public class MapsActivity extends AppCompatActivity
         super.onStop();
     }
 
-    public void onClick(View v) {
-        // ...
-    }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -295,16 +476,54 @@ public class MapsActivity extends AppCompatActivity
                 // error dialog.
                 Tools.toastLong(connectionResult.getErrorMessage(), getApplicationContext());
             }
-        } else {
+        }
+        /*
+        else {
             // Show the signed-out UI
             Tools.toastShort(getString(R.string.SIGNED_OUT), getApplicationContext());
         }
+        */
+    }
+
+    private void addHeatMap() {
+
+
+        // best solution so far has been waiting.
+        try{
+            Thread.sleep(5000);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
+        int[] colors = {
+                Color.rgb(102, 225, 0), // green
+                Color.rgb(255, 0, 0)    // red
+        };
+
+        float[] startPoints = {
+                0.2f, 1f
+        };
+
+        Gradient gradient = new Gradient(colors, startPoints);
+
+        // Create a heat map tile provider, passing it the latlngs of the police stations.
+        mProvider = new HeatmapTileProvider.Builder()
+                .data(list)
+                .radius(20)
+                .opacity(0.7)
+                .gradient(gradient)
+                .build();
+
+        // Add a tile overlay to the map, using the heat map tile provider.
+        mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
+        mOverlay.isVisible();
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG, "onActivityResult:" + requestCode + ":" + resultCode + ":" + data);
+            Log.d(TAG, "onActivityResult:" + requestCode + ":" + resultCode + ":" + data);
 
         if (requestCode == RC_SIGN_IN) {
             // If the error resolution was not successful we should not resolve further.
@@ -330,22 +549,19 @@ public class MapsActivity extends AppCompatActivity
         //Plus.PeopleApi.load(mLogin_GoogleApiClient, "me");
 
         // Show the signed-in UI
-        Tools.toastShort("Signed in", getApplicationContext());
+        Tools.toastShort("Welcome back " + prefs.getString(getString(R.string.FIRST_NAME), ""), getApplicationContext());
         goToLastLocation("move");
 
         if (Plus.PeopleApi.getCurrentPerson(mMap_GoogleApiClient) != null) {
-            Tools.toastShort("Current person not null (GOOD)", getApplicationContext());
-            currentPerson = Plus.PeopleApi.getCurrentPerson(mMap_GoogleApiClient);
-            personName = currentPerson.getDisplayName();
-            personPhoto = currentPerson.getImage().getUrl();
-            personGooglePlusProfile = currentPerson.getUrl();
+            //Tools.toastShort("Current person not null (GOOD)", getApplicationContext());
+            Person currentPerson = Plus.PeopleApi.getCurrentPerson(mMap_GoogleApiClient);
 
             //editor.clear();
-            editor.putString("net.nichnologist.hotspot.first_name", currentPerson.getName().getGivenName());
+            editor.putString(getString(R.string.FIRST_NAME), currentPerson.getName().getGivenName());
             editor.apply();
-            editor.putString("net.nichnologist.hotspot.last_name", currentPerson.getName().getFamilyName());
+            editor.putString(getString(R.string.LAST_NAME), currentPerson.getName().getFamilyName());
             editor.apply();
-            editor.putString("net.nichnologist.hotspot.google_id", currentPerson.getId());
+            editor.putString(getString(R.string.GOOGLE_ID), currentPerson.getId());
             editor.apply();
             //Tools.toastShort("Applied prefs", getApplicationContext());
         }
@@ -361,20 +577,25 @@ public class MapsActivity extends AppCompatActivity
             Plus.AccountApi.clearDefaultAccount(mMap_GoogleApiClient);
             mMap_GoogleApiClient.disconnect();
         }
-
+        editor.remove(getString(R.string.GOOGLE_ID));
+        editor.apply();
+        final Intent intent_loginScreen = new Intent(this, Login.class);
+        Tools.toastShort("Signed out", getApplicationContext());
+        startActivity(intent_loginScreen);
+        finish();
     }
 
-    private class SqlConnector extends AsyncTask<String, Void, String> {
+
+    private class SqlConnector_PushLoc extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
             String response = "";
             try {
-                SqlSender sender = new SqlSender();
-                if( sender.getID(prefs.getString("net.nichnologist.hotspot.google_id", "X")) == 0){
+                if( sender.getID(prefs.getString(getString(R.string.GOOGLE_ID), "X")) == 0){
                     sender.addUser(
-                            prefs.getString("net.nichnologist.hotspot.first_name", "NULL"),
-                            prefs.getString("net.nichnologist.hotspot.last_name", "NULL"),
-                            prefs.getString("net.nichnologist.hotspot.google_id", "NULL")
+                        prefs.getString(getString(R.string.FIRST_NAME), "NULL"),
+                        prefs.getString(getString(R.string.LAST_NAME), "NULL"),
+                        prefs.getString(getString(R.string.GOOGLE_ID), "NULL")
                     );
                 }
                 sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());
@@ -385,12 +606,54 @@ public class MapsActivity extends AppCompatActivity
         }
 
         public void Connect(){
-            MapsActivity.SqlConnector task = new SqlConnector();
+            MapsActivity.SqlConnector_PushLoc task = new SqlConnector_PushLoc();
             task.execute();
 
             //Tools.toastLong(task.doInBackground(), getApplicationContext());
         }
 
 
+    }
+
+    private class SqlConnector_GetLocs extends AsyncTask<TimePair, Void, String> {
+        @SuppressWarnings("unchecked")
+        @Override
+        protected String doInBackground(TimePair... datepair) {
+            try {
+                SqlSender send = new SqlSender();
+                List<LatLng> tempList = (ArrayList<LatLng>) send.getSet(datepair[0].time1, datepair[0].time2);
+                setList(tempList);
+                if(tempList.isEmpty()){
+                    return "fail";
+                }
+                return "success";
+            } catch (Exception e) {
+                System.out.println("Caught exception getting locations:");
+                e.printStackTrace();
+                return "fail";
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            System.out.println(result);
+            if(result.equals("success")){
+                clearMap();
+                addHeatMap();
+            }
+            else{
+                Tools.toastShort("No recent activity.", getApplicationContext());
+            }
+        }
+
+        @Override
+        protected void onPreExecute() {
+            Tools.toastShort("Retrieving HeatMap...", getApplicationContext());
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+
+        }
     }
 }

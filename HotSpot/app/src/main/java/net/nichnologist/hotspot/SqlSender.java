@@ -1,6 +1,11 @@
 package net.nichnologist.hotspot;
+
+import com.google.android.gms.maps.model.LatLng;
+
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class SqlSender {
     // Define JDBC driver for MySQL Connection
@@ -30,6 +35,86 @@ public class SqlSender {
         full_url = DB_URL + DATABASE + "?user=" + USER + "&password=" + PASS + "&ssl=true";
     }
 
+    public List getSet(java.sql.Timestamp time1, java.sql.Timestamp time2){
+        PreparedStatement add;
+        ResultSet result;
+        List<LatLng> list = new ArrayList<>();
+        double lat;
+        double lon;
+        LatLng latlon;
+
+        try {
+            // Instantiate driver.
+            Class.forName(JDBC_DRIVER);
+            System.out.println("Running getSet()");
+            System.out.println("Ran driver.");
+
+            // Open connection to database.
+            System.out.println("Establishing database connection...");
+            conn = DriverManager.getConnection(full_url);
+            System.out.println(" SUCCESS!\n");
+        }
+        catch(Exception e){
+            System.out.println("Encountered error with JDBC connection driver.");
+            e.printStackTrace(System.out);
+            return null;
+        }
+
+        try{
+            System.out.println("Executing query...");
+			
+			/* The PreparedStatement 'add' is a tool that helps prevent SQL Injection
+			 *  attacks. By using the '?' identifier and the 'setString' method, PreparedStatements
+			 *  eliminate escape characters and malicious user input. So someone putting their 
+			 *  last name as 'Smith"); DROP EVERYTHING OH SHIT;' won't damage your tables.
+			 */
+            String sql = "SELECT * from LocData where  ?<Time and Time<?";
+            add = conn.prepareStatement(sql);
+            add.setTimestamp(1, time1);
+            add.setTimestamp(2, time2);
+
+        }
+        catch(SQLException se){
+            System.out.println("Encountered error parsing user input into query statement.");
+            se.printStackTrace(System.out);
+            return null;
+        }
+
+        try{
+            // Execute query over JDBC SQL connection on port 3306 with SSL.
+            System.out.println("Requesting location data...");
+            //System.out.println(add);
+            result = add.executeQuery();
+            //System.out.println(" SUCCESS!\n");
+
+
+            while (result.next()) {
+                lat = result.getDouble("Lat");
+                lon = result.getDouble("Lon");
+                latlon = new LatLng(lat,lon);
+                list.add(latlon);
+            }
+            add.close();
+        }
+        catch(SQLException se) {
+            System.out.println(" FAIL!\n");
+            System.out.println("Query execution failed with the following errors:");
+            //se.printStackTrace();
+            se.printStackTrace(System.out);
+            System.out.println("Ensure user input is valid and try again.");
+            return null;
+        }
+
+        try {
+            if(conn != null)
+                conn.close();
+        } catch(SQLException se) {
+            System.out.println("Error closing connection. Was connection opened?");
+            se.printStackTrace(System.out);
+        }
+        System.out.println("Successfully acquired location list.");
+        return list;
+    }
 
     /*
      * Method 'addUser' takes a first name, last name, and googleID as strings and inserts them
@@ -47,7 +132,7 @@ public class SqlSender {
             System.out.println("Ran driver.");
 
             // Open connection to database.
-            System.out.print("Establishing database connection...");
+            System.out.println("Establishing database connection...");
             conn = DriverManager.getConnection(full_url);
             System.out.println(" SUCCESS!\n");
         }
@@ -58,7 +143,7 @@ public class SqlSender {
         }
 
         try{
-            System.out.print("Adding user records to table...");
+            System.out.println("Adding user records to table...");
 			
 			/* The PreparedStatement 'add' is a tool that helps prevent SQL Injection
 			 *  attacks. By using the '?' identifier and the 'setString' method, PreparedStatements
@@ -70,7 +155,7 @@ public class SqlSender {
             add.setString(1, first);
             add.setString(2, last);
             add.setString(3, GoogleID);
-            System.out.println(add);
+            //System.out.println(add);
         }
         catch(SQLException se){
             System.out.println("Encountered error parsing user input into query statement.");
@@ -115,7 +200,6 @@ public class SqlSender {
      */
     public int addLoc(double latitude, double longitude){
 
-
         String lat = String.valueOf(latitude);
         String lon = String.valueOf(longitude);
         PreparedStatement add;
@@ -123,8 +207,6 @@ public class SqlSender {
 
         java.sql.Timestamp sqlDate = new java.sql.Timestamp(datem.getTime());
         System.out.println("Got current time " + sqlDate);
-
-
 
         try {
             // Instantiate driver.
@@ -138,7 +220,7 @@ public class SqlSender {
         }
         try{
             // Open connection to database
-            System.out.print("Establishing database connection...");
+            System.out.println("Establishing database connection...");
             conn = DriverManager.getConnection(full_url);
             System.out.println(" SUCCESS!\n");
         }
@@ -150,14 +232,14 @@ public class SqlSender {
 
 
         try{
-            System.out.print("Adding location records to table...");
+            System.out.println("Adding location records to table...");
 
             String sql = "INSERT INTO LocData (Time, Lat, Lon) VALUES (?, ?, ?)";
             add = conn.prepareStatement(sql);
             add.setTimestamp(1, sqlDate);
             add.setString(2, lat);
             add.setString(3, lon);
-            System.out.println(add);
+            //System.out.println(add);
             add.executeUpdate();
 
             System.out.println(" SUCCESS!\n");
@@ -205,7 +287,7 @@ public class SqlSender {
         }
         try{
             // Open connection to database
-            System.out.print("Establishing database connection...");
+            System.out.println("Establishing database connection...");
             conn = DriverManager.getConnection(full_url);
             System.out.println(" SUCCESS!\n");
         }
@@ -216,12 +298,12 @@ public class SqlSender {
         }
 
         try{
-            System.out.print("Querying table...");
+            System.out.println("Querying table...");
 
             String sql = "SELECT UserID from UserData where GoogleID=?";
             add = conn.prepareStatement(sql);
             add.setString(1, GoogleID);
-            System.out.println(add);
+            //System.out.println(add);
             result = add.executeQuery();
             System.out.println(" SUCCESS!\n");
         }
