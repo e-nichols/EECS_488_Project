@@ -44,6 +44,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class MapsActivity
             extends AppCompatActivity
@@ -53,6 +54,8 @@ public class MapsActivity
 
     // Map object
     private GoogleMap mMap;
+    TileOverlay mOverlay;
+    HeatmapTileProvider mProvider;
 
     Button test_button;
 
@@ -148,7 +151,7 @@ public class MapsActivity
                 }
                 */
 
-
+                sendNewLocationPoint();
 
             }
         });
@@ -270,14 +273,41 @@ public class MapsActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camara) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
+        if (id == R.id.last_30) {
+            try{
+                new SqlConnector_GetLocs().execute(getTimePairFromNow(0,30));
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        } else if (id == R.id.last_60) {
+            try{
+                new SqlConnector_GetLocs().execute(getTimePairFromNow(1,0));
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        } else if (id == R.id.last_120) {
+            try{
+                new SqlConnector_GetLocs().execute(getTimePairFromNow(2,0));
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        } else if (id == R.id.last_360) {
+            try{
+                new SqlConnector_GetLocs().execute(getTimePairFromNow(6,0));
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        }else if (id == R.id.last_day) {
+            try{
+                new SqlConnector_GetLocs().execute(getTimePairFromNow(24,0));
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
@@ -325,24 +355,34 @@ public class MapsActivity
      */
     private void setUpMap() {
         try{
-            java.util.Date d1 = new Date(1447002008);
-            java.util.Date d2 = new Date(1447185013);
-            Calendar cal = Calendar.getInstance();
-            cal.set(2015, 11, 07);
-            java.util.Date d3 = cal.getTime();
-
-            java.text.SimpleDateFormat sdf =
-                    new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-            String time1 = sdf.format(d1);
-            String time2 = sdf.format(d2);
-            String time3 = sdf.format(d3);
-
-            new SqlConnector_GetLocs().execute(new TimePair(Timestamp.valueOf(time1), Timestamp.valueOf(time3)));
+            new SqlConnector_GetLocs().execute(getTimePairFromNow(48,0));
         }
         catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    /* Generates TimePair object based on time from past to current
+    PRE: None.
+    POST: None.
+    RETURN: TimePair object with 2 timestamps. Uses parameters to find difference between current
+             time and past time.
+     */
+    public TimePair getTimePairFromNow(int hours, int minutes){
+
+            Calendar cal = Calendar.getInstance();
+            java.util.Date d1 = cal.getTime();
+            cal.add(Calendar.HOUR, hours * (-1));
+            cal.add(Calendar.MINUTE, minutes * (-1));
+            java.util.Date d2 = cal.getTime();
+
+            java.text.SimpleDateFormat sdf =
+                    new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
+            String time1 = sdf.format(d1);
+            String time2 = sdf.format(d2);
+
+            return new TimePair(Timestamp.valueOf(time2), Timestamp.valueOf(time1));
     }
 
     /* buildGoogleApiClient builds the API client with location services and Plus privileges.
@@ -374,10 +414,10 @@ public class MapsActivity
         }
     }
 
-    /*
-    PRE:
-    POST:
-    RETURN:
+    /* Helper method that is called to move the map to the user's location.
+    PRE: mMap is instantiated
+    POST: Moves map to the user's location, either instantly, or by animating to them.
+    RETURN: None.
      */
     private void goToLastLocation(String how){
         updateLastLocation();
@@ -389,6 +429,7 @@ public class MapsActivity
             mMap.animateCamera(position);
         }
     }
+
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -439,8 +480,7 @@ public class MapsActivity
     }
 
     private void addHeatMap() {
-        TileOverlay mOverlay;
-        HeatmapTileProvider mProvider;
+
 
         // best solution so far has been waiting.
         try{
@@ -574,10 +614,11 @@ public class MapsActivity
         protected String doInBackground(TimePair... datepair) {
             try {
                 SqlSender send = new SqlSender();
-                System.out.println("First date: " + datepair[0].time1);
-                System.out.println("Second date: " + datepair[0].time2);
                 List<LatLng> tempList = (ArrayList<LatLng>) send.getSet(datepair[0].time1, datepair[0].time2);
                 setList(tempList);
+                if(tempList.isEmpty()){
+                    return "fail";
+                }
                 return "success";
             } catch (Exception e) {
                 System.out.println("Caught exception getting locations:");
@@ -588,8 +629,22 @@ public class MapsActivity
 
         @Override
         protected void onPostExecute(String result) {
-            //TODO: clearHeatMap();
-            addHeatMap();
+            System.out.println(result);
+            if(result.equals("success")){
+                try {
+                    mOverlay.remove();
+                }
+                catch(Exception e){
+                    e.printStackTrace();
+                }
+                addHeatMap();
+            }
+            else{
+                Tools.toastShort("No recent activity.", getApplicationContext());
+            }
+
+
+
         }
         @Override
         protected void onPreExecute() {
