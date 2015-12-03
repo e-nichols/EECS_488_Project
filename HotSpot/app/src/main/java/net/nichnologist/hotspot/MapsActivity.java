@@ -94,11 +94,11 @@ public class MapsActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.checkInButton);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Checking in...", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
@@ -248,6 +248,8 @@ public class MapsActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            final Intent menuIntent = new Intent(this, SettingsActivity.class);
+            startActivity(menuIntent);
             return true;
         }
         if (id == R.id.action_google_sign_out) {
@@ -643,6 +645,7 @@ public class MapsActivity
             }
             else{
                 Tools.toastShort("No recent activity.", getApplicationContext());
+                clearMap();
             }
         }
 
