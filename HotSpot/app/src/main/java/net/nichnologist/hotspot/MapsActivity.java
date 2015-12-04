@@ -25,16 +25,18 @@ import android.view.MenuItem;
 import android.widget.Button;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.plus.Plus;
@@ -58,8 +60,6 @@ public class MapsActivity
     private GoogleMap mMap;
     TileOverlay mOverlay;
     HeatmapTileProvider mProvider;
-
-    Button test_button;
 
     // Items used in location awarenesss
     Location lastLocation;
@@ -91,6 +91,8 @@ public class MapsActivity
     private PendingIntent pendingIntent;
     private AlarmManager manager;
 
+    int PLACE_PICKER_REQUEST = 200;
+
     /* OnCreate instantiates most of the variables. It builds the activity with Super, and connects
         any interface elements in the XML to their code here in Java. It sets up the map as well.
     PRE: None
@@ -105,17 +107,9 @@ public class MapsActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.checkInButton);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Checking in...", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
 
 
 
-            }
-        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -151,23 +145,30 @@ public class MapsActivity
 
         ////////////// Define UI connectors/buttons /////////////////
 
-        test_button = (Button) findViewById(R.id.toast_button);
-        test_button.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton checkInButton = (FloatingActionButton) findViewById(R.id.checkInButton);
+        checkInButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                goToLastLocation("animate");
-                /*
-                if (sendNewLocationPoint()) {
-                    System.out.println("Send new location point");
-                } else {
-                    Tools.toastShort("send method caught exception, returned false", getApplicationContext());
-                }
-                */
+            public void onClick(View view) {
+                Snackbar.make(view, "Checking in...", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
 
-                sendNewLocationPoint();
+                searchNearby();
 
             }
         });
+
+        Button sendLocationButton = (Button) findViewById(R.id.toast_button);
+        sendLocationButton.setBackgroundColor(Color.TRANSPARENT);
+        sendLocationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goToLastLocation("animate");
+                sendNewLocationPoint();
+                Tools.toastShort("Send LatLng to database", getApplicationContext());
+            }
+        });
+
+
     }
 
     /* setList is a public method for setting values of list from external threads. It is required
@@ -246,7 +247,7 @@ public class MapsActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.maps_activity, menu);
+        getMenuInflater().inflate(R.menu.maps_pulldown, menu);
         return true;
     }
 
@@ -272,6 +273,7 @@ public class MapsActivity
             onSignOutClicked();
             return true;
         }
+
 
 
         return super.onOptionsItemSelected(item);
@@ -455,7 +457,6 @@ public class MapsActivity
         }
     }
 
-
     @Override
     public void onConnectionSuspended(int i) {
         Tools.toastShort("Connection Suspended", getApplicationContext());
@@ -471,7 +472,6 @@ public class MapsActivity
     protected void onStop() {
         super.onStop();
     }
-
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -505,8 +505,6 @@ public class MapsActivity
     }
 
     private void addHeatMap() {
-
-
         // best solution so far has been waiting.
         try{
             Thread.sleep(5000);
@@ -536,7 +534,7 @@ public class MapsActivity
 
         // Add a tile overlay to the map, using the heat map tile provider.
         mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
-        mOverlay.isVisible();
+        mOverlay.setVisible(true);
     }
 
     @Override
@@ -553,6 +551,15 @@ public class MapsActivity
             mIsResolving = false;
             mMap_GoogleApiClient.connect();
         }
+
+        if (requestCode == PLACE_PICKER_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlacePicker.getPlace(data, this);
+                String toastMsg = String.format("Checked in at %s", place.getName());
+                Tools.toastLong(toastMsg, getApplicationContext());
+            }
+        }
+
     }
 
     @Override
@@ -603,7 +610,6 @@ public class MapsActivity
         startActivity(intent_loginScreen);
         finish();
     }
-
 
     private class SqlConnector_PushLoc extends AsyncTask<String, Void, String> {
         @Override
@@ -694,6 +700,20 @@ public class MapsActivity
             manager.cancel(pendingIntent);
             Tools.toastShort("Alarm Canceled", getApplicationContext());
             System.out.println("Cancelled alarm");
+        }
+    }
+
+    private void searchNearby(){
+        PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+
+        try{
+            startActivityForResult(builder.build(this), PLACE_PICKER_REQUEST);
+        }
+        catch (GooglePlayServicesRepairableException e) {
+            GooglePlayServicesUtil.getErrorDialog(e.getConnectionStatusCode(),
+                    this, 0);
+        } catch (GooglePlayServicesNotAvailableException e) {
+            Tools.toastShort("Google Play Services is not available.", getApplicationContext());
         }
     }
 }

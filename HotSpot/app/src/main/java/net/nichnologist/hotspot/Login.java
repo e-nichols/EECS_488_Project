@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
@@ -92,7 +94,8 @@ public class Login extends AppCompatActivity
         ////////////// BUTTONS ONLY BELOW HERE IN ONCREATE//////////////////
 
 
-        FloatingActionButton resetButton = (FloatingActionButton) findViewById(R.id.resetButton);
+        Button resetButton = (Button) findViewById(R.id.resetButton);
+        resetButton.setBackgroundColor(Color.TRANSPARENT);
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

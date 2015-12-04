@@ -19,7 +19,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
-        app:headerLayout="@layout/nav_header_maps"
-        app:menu="@menu/activity_maps_drawer" />
+        app:headerLayout="@layout/activity_maps_sidebar_header"
+        app:menu="@menu/activity_maps_sidebar_content" />
 
 </android.support.v4.widget.DrawerLayout>
