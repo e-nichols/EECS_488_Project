@@ -2,32 +2,46 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'keystore'
+            keyPassword 'ironclad0'
+            storeFile file('C:/Users/dhorvath/keystore.jks')
+            storePassword 'ironclad0'
+        }
+    }
     compileSdkVersion 23
     buildToolsVersion '23.0.2'
-
     defaultConfig {
         applicationId "net.nichnologist.hotspot"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 5
-        versionName "0.40"
+        versionCode 6
+        versionName "0.60"
         multiDexEnabled true
+        signingConfig signingConfigs.config
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
+    }
+    productFlavors {
     }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:23.1.0'
-    compile 'com.google.android.gms:play-services:8.1.0'
-    compile 'com.android.support:design:23.1.0'
-    compile 'com.google.android.gms:play-services-identity:8.1.0'
-    compile 'com.google.android.gms:play-services-plus:8.1.0'
     compile files('src/main/java/net/nichnologist/hotspot/mysql/mysql-connector-java-5.1.36-bin.jar')
+    compile 'com.android.support:appcompat-v7:23.1.0'
+    compile 'com.google.android.gms:play-services:8.3.0'
+    compile 'com.android.support:design:23.1.0'
+    compile 'com.google.android.gms:play-services-identity:8.3.0'
+    compile 'com.google.android.gms:play-services-plus:8.3.0'
+    compile 'com.google.android.gms:play-services-ads:8.3.0'
+    compile 'com.google.android.gms:play-services-gcm:8.3.0'
+    compile 'com.android.support:support-v4:23.1.0'
     compile 'com.google.maps.android:android-maps-utils:0.4+'
 }
