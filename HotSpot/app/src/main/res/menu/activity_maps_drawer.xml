@@ -2,11 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:checkableBehavior="single">
-        <item android:id="@+id/last_30" android:icon="@android:drawable/ic_menu_camera"
+        <item android:id="@+id/last_30" android:icon="@android:drawable/ic_menu_manage"
             android:title="Last half hour" />
-        <item android:id="@+id/last_60" android:icon="@android:drawable/ic_menu_gallery"
+        <item android:id="@+id/last_60" android:icon="@android:drawable/ic_menu_manage"
             android:title="Last hour" />
-        <item android:id="@+id/last_120" android:icon="@android:drawable/ic_menu_slideshow"
+        <item android:id="@+id/last_120" android:icon="@android:drawable/ic_menu_manage"
             android:title="Last two hours" />
         <item android:id="@+id/last_360" android:icon="@android:drawable/ic_menu_manage"
             android:title="Last six hours" />
@@ -14,12 +14,12 @@
             android:title="Past day" />
     </group>
 
-    <item android:title="Communicate">
+    <item android:title="Participation">
         <menu>
-            <item android:id="@+id/nav_share" android:icon="@android:drawable/ic_menu_share"
-                android:title="Share" />
-            <item android:id="@+id/nav_send" android:icon="@android:drawable/ic_menu_send"
-                android:title="Send" />
+            <item android:id="@+id/location_share_start" android:icon="@android:drawable/ic_menu_share"
+                android:title="Start sharing" />
+            <item android:id="@+id/location_share_stop" android:icon="@android:drawable/ic_delete"
+                android:title="Stop sharing" />
         </menu>
     </item>
 

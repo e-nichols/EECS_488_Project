@@ -1,5 +1,7 @@
 package net.nichnologist.hotspot;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -25,11 +27,14 @@ import android.widget.Button;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.plus.Plus;
@@ -80,6 +85,12 @@ public class MapsActivity
     /* Should we automatically resolve ConnectionResults when possible? */
     private boolean mShouldResolve = false;
 
+    /*
+    Variables for scheduling background tasks
+     */
+    private PendingIntent pendingIntent;
+    private AlarmManager manager;
+
     /* OnCreate instantiates most of the variables. It builds the activity with Super, and connects
         any interface elements in the XML to their code here in Java. It sets up the map as well.
     PRE: None
@@ -100,6 +111,9 @@ public class MapsActivity
             public void onClick(View view) {
                 Snackbar.make(view, "Checking in...", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+
+
+
             }
         });
 
@@ -131,6 +145,8 @@ public class MapsActivity
         prefs = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = prefs.edit();
         editor.apply();
+
+
 
 
         ////////////// Define UI connectors/buttons /////////////////
@@ -307,10 +323,11 @@ public class MapsActivity
             catch(Exception e){
                 e.printStackTrace();
             }
-        } else if (id == R.id.nav_share) {
+        } else if (id == R.id.location_share_start) {
+            beginAlarm(getCurrentFocus());
 
-        } else if (id == R.id.nav_send) {
-
+        } else if (id == R.id.location_share_stop) {
+            stopAlarm(getCurrentFocus());
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -657,6 +674,26 @@ public class MapsActivity
         @Override
         protected void onProgressUpdate(Void... values) {
 
+        }
+    }
+
+    public void beginAlarm(View view) {
+        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+
+        manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        int interval = 300000;
+
+        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+        Tools.toastShort("Alarm Started", getApplicationContext());
+        System.out.println("Alarm started");
+    }
+
+    public void stopAlarm(View view) {
+        if (manager != null) {
+            manager.cancel(pendingIntent);
+            Tools.toastShort("Alarm Canceled", getApplicationContext());
+            System.out.println("Cancelled alarm");
         }
     }
 }

@@ -67,6 +67,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="net.nichnologist.hotspot.MapsActivity" />
         </activity>
+
+        <receiver android:name=".AlarmReceiver"></receiver>
     </application>
 
 </manifest>
