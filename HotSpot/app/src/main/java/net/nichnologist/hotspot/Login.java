@@ -196,8 +196,6 @@ public class Login extends AppCompatActivity
 
         // Show a message to the user that we are signing in.
         Tools.toastShort("Signing in...", getApplicationContext());
-
-
     }
 
     @Override
@@ -271,7 +269,6 @@ public class Login extends AppCompatActivity
                             prefs.getString(getString(R.string.GOOGLE_ID), "NULL")
                     );
                 }
-                sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());
             } catch (Exception e) {
                 e.printStackTrace();
             }

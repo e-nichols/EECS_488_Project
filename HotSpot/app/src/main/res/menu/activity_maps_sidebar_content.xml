@@ -2,15 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:checkableBehavior="single">
-        <item android:id="@+id/last_30" android:icon="@android:drawable/ic_menu_manage"
+        <item android:id="@+id/last_30"
             android:title="Last half hour" />
-        <item android:id="@+id/last_60" android:icon="@android:drawable/ic_menu_manage"
+        <item android:id="@+id/last_60"
             android:title="Last hour" />
-        <item android:id="@+id/last_120" android:icon="@android:drawable/ic_menu_manage"
+        <item android:id="@+id/last_120"
             android:title="Last two hours" />
-        <item android:id="@+id/last_360" android:icon="@android:drawable/ic_menu_manage"
+        <item android:id="@+id/last_360"
             android:title="Last six hours" />
-        <item android:id="@+id/last_day" android:icon="@android:drawable/ic_menu_manage"
+        <item android:id="@+id/last_day"
             android:title="Past day" />
     </group>
 

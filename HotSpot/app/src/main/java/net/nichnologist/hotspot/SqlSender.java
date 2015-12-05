@@ -38,10 +38,13 @@ public class SqlSender {
     public List getSet(java.sql.Timestamp time1, java.sql.Timestamp time2){
         PreparedStatement add;
         ResultSet result;
-        List<LatLng> list = new ArrayList<>();
+        List<LocationObject> list = new ArrayList<>();
         double lat;
         double lon;
         LatLng latlon;
+        java.sql.Timestamp time;
+        boolean checkIn;
+        String googleID;
 
         try {
             // Instantiate driver.
@@ -62,10 +65,10 @@ public class SqlSender {
 
         try{
             System.out.println("Executing query...");
-			
+
 			/* The PreparedStatement 'add' is a tool that helps prevent SQL Injection
 			 *  attacks. By using the '?' identifier and the 'setString' method, PreparedStatements
-			 *  eliminate escape characters and malicious user input. So someone putting their 
+			 *  eliminate escape characters and malicious user input. So someone putting their
 			 *  last name as 'Smith"); DROP EVERYTHING OH SHIT;' won't damage your tables.
 			 */
             String sql = "SELECT * from LocData where  ?<Time and Time<?";
@@ -87,12 +90,14 @@ public class SqlSender {
             result = add.executeQuery();
             //System.out.println(" SUCCESS!\n");
 
-
             while (result.next()) {
                 lat = result.getDouble("Lat");
                 lon = result.getDouble("Lon");
                 latlon = new LatLng(lat,lon);
-                list.add(latlon);
+                time = result.getTimestamp("Time");
+                googleID = result.getString("GoogleID");
+                checkIn = result.getBoolean("CheckIn");
+                list.add(new LocationObject(time, latlon, googleID, checkIn));
             }
             add.close();
         }
@@ -144,10 +149,10 @@ public class SqlSender {
 
         try{
             System.out.println("Adding user records to table...");
-			
+
 			/* The PreparedStatement 'add' is a tool that helps prevent SQL Injection
 			 *  attacks. By using the '?' identifier and the 'setString' method, PreparedStatements
-			 *  eliminate escape characters and malicious user input. So someone putting their 
+			 *  eliminate escape characters and malicious user input. So someone putting their
 			 *  last name as 'Smith"); DROP EVERYTHING OH SHIT;' won't damage your tables.
 			 */
             String sql = "INSERT INTO UserData (FirstName, LastName, GoogleID) VALUES (?, ?, ?)";
@@ -198,7 +203,7 @@ public class SqlSender {
      * Returns: 0 for success and 1 for error encountered.
      * Post: Inserts a new row into the LocData table of Hotspot.*
      */
-    public int addLoc(double latitude, double longitude){
+    public int addLoc(double latitude, double longitude, boolean checkIn){
 
         String lat = String.valueOf(latitude);
         String lon = String.valueOf(longitude);
@@ -234,11 +239,12 @@ public class SqlSender {
         try{
             System.out.println("Adding location records to table...");
 
-            String sql = "INSERT INTO LocData (Time, Lat, Lon) VALUES (?, ?, ?)";
+            String sql = "INSERT INTO LocData (Time, Lat, Lon, CheckIn) VALUES (?, ?, ?, ?)";
             add = conn.prepareStatement(sql);
             add.setTimestamp(1, sqlDate);
             add.setString(2, lat);
             add.setString(3, lon);
+            add.setBoolean(4, checkIn);
             //System.out.println(add);
             add.executeUpdate();
 
