@@ -122,31 +122,56 @@ public class Tools {
         demoList.add(new LocationObject(Tools.getTimeStampRelative(25), new LatLng(38.969201 + .000013, -95.236187 + .000051), " ", false));
         demoList.add(new LocationObject(Tools.getTimeStampRelative(33), new LatLng(38.969201 + .000027, -95.236187 + .000030), " ", false));
         demoList.add(new LocationObject(Tools.getTimeStampRelative(15), new LatLng(38.969201 + .000057, -95.236187 + .000030), " ", false));
-        demoList.add(new LocationObject(Tools.getTimeStampRelative(5),  new LatLng(38.969201 - .000023, -95.236187 + .000049), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(33), new LatLng(38.969201 - .000023, -95.236187 + .000049), " ", false));
         demoList.add(new LocationObject(Tools.getTimeStampRelative(45), new LatLng(38.969201 - .000059, -95.236187 - .000080), " ", false));
         demoList.add(new LocationObject(Tools.getTimeStampRelative(25), new LatLng(38.969201 - .000030, -95.236187 + .000060), " ", false));
         demoList.add(new LocationObject(Tools.getTimeStampRelative(33), new LatLng(38.969201 + .000027, -95.236187 - .000030), " ", false));
         demoList.add(new LocationObject(Tools.getTimeStampRelative(15), new LatLng(38.969201 - .000047, -95.236187 + .000020), " ", false));
-        demoList.add(new LocationObject(Tools.getTimeStampRelative(5),  new LatLng(38.969201 - .000023, -95.236187 + .000029), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(33), new LatLng(38.969201 - .000023, -95.236187 + .000029), " ", false));
         demoList.add(new LocationObject(Tools.getTimeStampRelative(45), new LatLng(38.969201 - .000059, -95.236187 - .000080), " ", false));
 
         // picklemans
-        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.968625, -95.235651), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.968625 + .000057, -95.235651 + .000049), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(15), new LatLng(38.968625 + .000067, -95.235651 + .000030), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(50), new LatLng(38.968625 - .000023, -95.235651 + .000042), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(45), new LatLng(38.968625 - .000059, -95.235651 - .000080), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(25), new LatLng(38.968625 - .000030, -95.235651 + .000060), " ", false));
 
         // pig
-        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.967674, -95.235369), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.967674 - .000049, -95.235369 + .000034), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(45), new LatLng(38.967674 - .000059, -95.235369 - .000080), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(25), new LatLng(38.967674 - .000030, -95.235369 + .000060), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(33), new LatLng(38.967674 + .000027, -95.235369 - .000030), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(15), new LatLng(38.967674 - .000047, -95.235369 + .000020), " ", false));
+
 
         // jimmy johns
-        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.966615, -95.235562), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.966615 - .000030, -95.235562 - .000030), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(25), new LatLng(38.966615 - .000045, -95.235562 + .000060), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(33), new LatLng(38.966615 + .000027, -95.235562 - .000041), " ", false));
 
         // replay
-        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.965831, -95.235524), " ", true));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.965831 - .000059, -95.235524 + .000029), " ", true));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(15), new LatLng(38.965831 + .000057, -95.235524 + .000030), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(33), new LatLng(38.965831 - .000023, -95.235524 + .000049), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(25), new LatLng(38.965831 - .000059, -95.235524 - .000080), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(25), new LatLng(38.965831 - .000030, -95.235524 + .000060), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(23), new LatLng(38.965831 + .000027, -95.235524 - .000030), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(15), new LatLng(38.965831 - .000047, -95.235524 + .000020), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(33), new LatLng(38.965831 + .000023, -95.235524 + .000029), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(45), new LatLng(38.965831 - .000059, -95.235524 - .000080), " ", false));
 
         // encore
-        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.965312, -95.236157), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.965312 + .000027, -95.236157 + .000020), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(45), new LatLng(38.965312 - .000059, -95.236157 - .000080), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(25), new LatLng(38.965312 - .000030, -95.236157 + .000060), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(33), new LatLng(38.965312 + .000027, -95.236157 - .000030), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(15), new LatLng(38.965312 - .000047, -95.236157 + .000020), " ", false));
 
         // pita pit
-        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.965170, -95.236200), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.965170 - .000047, -95.236200 + .000020), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(25), new LatLng(38.965170 - .000030, -95.236200 + .000060), " ", false));
+        demoList.add(new LocationObject(Tools.getTimeStampRelative(33), new LatLng(38.965170 + .000027, -95.236200 - .000030), " ", false));
 
         // zen zero
         demoList.add(new LocationObject(Tools.getTimeStampRelative(30), new LatLng(38.968926, -95.236203), " ", false));

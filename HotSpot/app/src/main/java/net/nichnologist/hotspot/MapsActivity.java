@@ -314,9 +314,14 @@ public class MapsActivity
                 e.printStackTrace();
             }
         } else if (id == R.id.location_share_start) {
-            startLocationShare(getCurrentFocus());
+            if(!prefs.getBoolean(getString(R.string.share_location), false)) {
+                startLocationShare(getCurrentFocus());
+                editor.apply();
+            }
+            else{
+                Tools.toastShort("Already sharing", getApplicationContext());
+            }
             //item.setVisible(false);
-            editor.apply();
 
 
         } else if (id == R.id.location_share_stop) {
@@ -477,21 +482,15 @@ public class MapsActivity
     }
 
     private void addHeatMap() {
-        // best solution so far has been waiting.
-        try{
-            Thread.sleep(5000);
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
-
         int[] colors = {
-                Color.rgb(102, 225, 0), // green
+                Color.rgb(0, 225, 169), // bluish
+                Color.rgb(43, 214, 0),
+                Color.rgb(224, 232, 0),
                 Color.rgb(255, 0, 0)    // red
         };
 
         float[] startPoints = {
-                0.2f, 1f
+                0.1f, 0.3f, 0.7f, 1f
         };
 
         Gradient gradient = new Gradient(colors, startPoints);
