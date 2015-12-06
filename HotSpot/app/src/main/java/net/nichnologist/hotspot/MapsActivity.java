@@ -301,7 +301,16 @@ public class MapsActivity
             try{
                 new SqlConnector_GetLocs().execute(Tools.getTimePairFromNow(24,0));
             }
-            catch(Exception e){
+            catch(Exception e) {
+                e.printStackTrace();
+            }
+        } else if (id == R.id.demo_data_button) {
+            try{
+                clearMap();
+                setList(Tools.getDemoList());
+                addHeatMap();
+            }
+            catch(Exception e) {
                 e.printStackTrace();
             }
         } else if (id == R.id.location_share_start) {
@@ -320,6 +329,8 @@ public class MapsActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+
 
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
@@ -491,8 +502,9 @@ public class MapsActivity
             double currentTime = cal.getTime().getTime();
 
             double weight = list.get(i).getTime().getTime() - currentTime;
+            weight = 1/weight;
             if(list.get(i).getCheckIn()){
-                weight = weight*1.5;
+                weight = weight*2;
             }
             weightedList.add(new WeightedLatLng(list.get(i).getLatLng(), weight));
         }

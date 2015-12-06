@@ -12,6 +12,10 @@
             android:title="Last six hours" />
         <item android:id="@+id/last_day"
             android:title="Past day" />
+        <item android:id="@+id/demo_data_button"
+            android:icon="@drawable/ic_setting_dark"
+            android:title="Load Demo"
+            android:visible="true"/>
     </group>
 
     <item android:title="Participation">

@@ -38,7 +38,7 @@ public class LocationService extends Service {
 
                 while(prefs.getBoolean(getString(R.string.share_location), false)){
                     long endTime = System.currentTimeMillis() +
-                            10*1000;
+                            600*1000;
 
                     Log.i(TAG, "Service running " + currentId);
                     sender.addLoc(38.971669, -95.23525, false);
