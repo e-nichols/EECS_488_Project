@@ -1,6 +1,5 @@
 package net.nichnologist.hotspot;
 
-import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.internal.view.menu.MenuItemImpl;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -81,13 +81,9 @@ public class MapsActivity
     /* Should we automatically resolve ConnectionResults when possible? */
     private boolean mShouldResolve = false;
 
-    /*
-    Variables for scheduling background tasks
-     */
-    private PendingIntent pendingIntent;
-    private AlarmManager manager;
-
     int PLACE_PICKER_REQUEST = 200;
+
+    Intent locationIntent;
 
     /* OnCreate instantiates most of the variables. It builds the activity with Super, and connects
         any interface elements in the XML to their code here in Java. It sets up the map as well.
@@ -102,10 +98,6 @@ public class MapsActivity
         setContentView(R.layout.activity_maps);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-
-
-
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -136,8 +128,6 @@ public class MapsActivity
         editor.apply();
 
 
-
-
         ////////////// Define UI connectors/buttons /////////////////
 
         FloatingActionButton checkInButton = (FloatingActionButton) findViewById(R.id.checkInButton);
@@ -162,7 +152,6 @@ public class MapsActivity
                 Tools.toastShort("Send LatLng to database", getApplicationContext());
             }
         });
-
 
     }
 
@@ -243,6 +232,7 @@ public class MapsActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.maps_pulldown, menu);
+
         return true;
     }
 
@@ -268,9 +258,6 @@ public class MapsActivity
             onSignOutClicked();
             return true;
         }
-
-
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -279,7 +266,6 @@ public class MapsActivity
     POST: Takes action by button case.
     RETURN: TRUE on completion.
      */
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
@@ -321,10 +307,15 @@ public class MapsActivity
                 e.printStackTrace();
             }
         } else if (id == R.id.location_share_start) {
-            beginAlarm(getCurrentFocus());
+            startLocationShare(getCurrentFocus());
+            //item.setVisible(false);
+            editor.apply();
+
 
         } else if (id == R.id.location_share_stop) {
-            stopAlarm(getCurrentFocus());
+            stopLocationShare(getCurrentFocus());
+            //item.setVisible(false);
+            editor.apply();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -374,8 +365,6 @@ public class MapsActivity
             e.printStackTrace();
         }
     }
-
-
 
     /* buildGoogleApiClient builds the API client with location services and Plus privileges.
     PRE: mMap_GoogleApiClient is declared.
@@ -662,24 +651,23 @@ public class MapsActivity
         }
     }
 
-    public void beginAlarm(View view) {
-        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+    public void startLocationShare(View view) {
+        editor.putBoolean(getString(R.string.share_location), true);
 
-        manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        int interval = 300000;
+        Tools.toastShort("Sharing Location", getApplicationContext());
+        locationIntent = new Intent(this, LocationService.class);
+        startService(locationIntent);
 
-        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-        Tools.toastShort("Alarm Started", getApplicationContext());
-        System.out.println("Alarm started");
+        System.out.println("Started alarm");
     }
 
-    public void stopAlarm(View view) {
-        if (manager != null) {
-            manager.cancel(pendingIntent);
-            Tools.toastShort("Alarm Canceled", getApplicationContext());
-            System.out.println("Cancelled alarm");
-        }
+    public void stopLocationShare(View view) {
+        editor.putBoolean(getString(R.string.share_location), false);
+
+        Tools.toastShort("Location sharing disabled", getApplicationContext());
+        stopService(locationIntent);
+        System.out.println("Cancelled alarm");
+
     }
 
     private void searchNearby(){

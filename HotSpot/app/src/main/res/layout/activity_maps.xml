@@ -20,6 +20,7 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/activity_maps_sidebar_header"
-        app:menu="@menu/activity_maps_sidebar_content" />
+        app:menu="@menu/activity_maps_sidebar_content"
+        />
 
 </android.support.v4.widget.DrawerLayout>

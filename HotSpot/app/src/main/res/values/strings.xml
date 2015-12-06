@@ -12,6 +12,7 @@
     <string name="FIRST_NAME">net.nichnologist.hotspot.first_name</string>
     <string name="LAST_NAME">net.nichnologist.hotspot.last_name</string>
     <string name="SIGNED_OUT">net.nichnologist.hotspot.signed_out</string>
+    <string name="share_location">net.nichnologist.hotspot.share_location</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

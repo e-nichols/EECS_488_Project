@@ -68,7 +68,11 @@
                 android:value="net.nichnologist.hotspot.MapsActivity" />
         </activity>
 
-        <receiver android:name=".AlarmReceiver"></receiver>
+        <service
+            android:name=".LocationService"
+            android:enabled="true"
+            android:exported="true" >
+        </service>
     </application>
 
 </manifest>
