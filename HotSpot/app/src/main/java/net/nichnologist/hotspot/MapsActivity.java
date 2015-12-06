@@ -1,6 +1,5 @@
 package net.nichnologist.hotspot;
 
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -11,7 +10,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.internal.view.menu.MenuItemImpl;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;

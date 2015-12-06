@@ -31,6 +31,7 @@ public class LocationService extends Service {
         prefs = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = prefs.edit();
         editor.apply();
+        final SqlSender sender = new SqlSender();
 
         Runnable r = new Runnable() {
             public void run() {
@@ -38,6 +39,9 @@ public class LocationService extends Service {
                 while(prefs.getBoolean(getString(R.string.share_location), false)){
                     long endTime = System.currentTimeMillis() +
                             10*1000;
+
+                    Log.i(TAG, "Service running " + currentId);
+                    sender.addLoc(38.971669, -95.23525, false);
 
                     while (System.currentTimeMillis() < endTime) {
                         synchronized (this) {
@@ -48,7 +52,6 @@ public class LocationService extends Service {
                             }
                         }
                     }
-                    Log.i(TAG, "Service running " + currentId);
                 }
                 stopSelf();
             }
