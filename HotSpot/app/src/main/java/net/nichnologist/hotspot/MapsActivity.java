@@ -1,7 +1,5 @@
 package net.nichnologist.hotspot;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -43,12 +41,11 @@ import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
+import com.google.maps.android.heatmaps.WeightedLatLng;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 
 public class MapsActivity
             extends AppCompatActivity
@@ -64,10 +61,7 @@ public class MapsActivity
     // Items used in location awarenesss
     Location lastLocation;
     LatLng latLon;
-    List<LatLng> list;
-
-    // ASyncTask objects for network actions
-    private SqlConnector_PushLoc connector_pushLoc;
+    List<LocationObject> list;
 
     // SqlSender helper object, contains machinery for SSL JDBC connection and queries.
     private SqlSender sender;
@@ -85,13 +79,9 @@ public class MapsActivity
     /* Should we automatically resolve ConnectionResults when possible? */
     private boolean mShouldResolve = false;
 
-    /*
-    Variables for scheduling background tasks
-     */
-    private PendingIntent pendingIntent;
-    private AlarmManager manager;
-
     int PLACE_PICKER_REQUEST = 200;
+
+    Intent locationIntent;
 
     /* OnCreate instantiates most of the variables. It builds the activity with Super, and connects
         any interface elements in the XML to their code here in Java. It sets up the map as well.
@@ -106,10 +96,6 @@ public class MapsActivity
         setContentView(R.layout.activity_maps);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-
-
-
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -126,7 +112,6 @@ public class MapsActivity
         // This point is a bit of a hack. Rather than catch exceptions or wait for SQL returns, I'm
         //  just forcing an origin point onto the list so it won't be empty. Probably unnecessary but w/e.
         //list.add(new LatLng(0, 0));
-        connector_pushLoc = new SqlConnector_PushLoc();
         //connector_getLocs.Connect();
 
         setUpMapIfNeeded();
@@ -139,8 +124,6 @@ public class MapsActivity
         prefs = this.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = prefs.edit();
         editor.apply();
-
-
 
 
         ////////////// Define UI connectors/buttons /////////////////
@@ -163,11 +146,10 @@ public class MapsActivity
             @Override
             public void onClick(View view) {
                 goToLastLocation("animate");
-                sendNewLocationPoint();
+                sendNewLocationPoint(false);
                 Tools.toastShort("Send LatLng to database", getApplicationContext());
             }
         });
-
 
     }
 
@@ -211,10 +193,10 @@ public class MapsActivity
     POST: Stores current location into lastLocation, then calls connector_pushLoc to send.
     RETURN: TRUE if success, FALSE if fail.
      */
-    private boolean sendNewLocationPoint() {
+    private boolean sendNewLocationPoint(boolean checkIn) {
         updateLastLocation();
         try {
-            connector_pushLoc.Connect();
+            new SqlConnector_PushLoc().execute(checkIn);
             //Tools.toastLong(prefs.getString(getString(R.string.FIRST_NAME), "Failed to get firstname from prefs"), getApplicationContext());
             return true;
         }
@@ -248,6 +230,7 @@ public class MapsActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.maps_pulldown, menu);
+
         return true;
     }
 
@@ -273,9 +256,6 @@ public class MapsActivity
             onSignOutClicked();
             return true;
         }
-
-
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -284,7 +264,6 @@ public class MapsActivity
     POST: Takes action by button case.
     RETURN: TRUE on completion.
      */
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
@@ -292,50 +271,71 @@ public class MapsActivity
 
         if (id == R.id.last_30) {
             try{
-                new SqlConnector_GetLocs().execute(getTimePairFromNow(0,30));
+                new SqlConnector_GetLocs().execute(Tools.getTimePairFromNow(0,30));
             }
             catch(Exception e){
                 e.printStackTrace();
             }
         } else if (id == R.id.last_60) {
             try{
-                new SqlConnector_GetLocs().execute(getTimePairFromNow(1,0));
+                new SqlConnector_GetLocs().execute(Tools.getTimePairFromNow(1,0));
             }
             catch(Exception e){
                 e.printStackTrace();
             }
         } else if (id == R.id.last_120) {
             try{
-                new SqlConnector_GetLocs().execute(getTimePairFromNow(2,0));
+                new SqlConnector_GetLocs().execute(Tools.getTimePairFromNow(2,0));
             }
             catch(Exception e){
                 e.printStackTrace();
             }
         } else if (id == R.id.last_360) {
             try{
-                new SqlConnector_GetLocs().execute(getTimePairFromNow(6,0));
+                new SqlConnector_GetLocs().execute(Tools.getTimePairFromNow(6,0));
             }
             catch(Exception e){
                 e.printStackTrace();
             }
         }else if (id == R.id.last_day) {
             try{
-                new SqlConnector_GetLocs().execute(getTimePairFromNow(24,0));
+                new SqlConnector_GetLocs().execute(Tools.getTimePairFromNow(24,0));
             }
-            catch(Exception e){
+            catch(Exception e) {
+                e.printStackTrace();
+            }
+        } else if (id == R.id.demo_data_button) {
+            try{
+                clearMap();
+                setList(Tools.getDemoList());
+                addHeatMap();
+            }
+            catch(Exception e) {
                 e.printStackTrace();
             }
         } else if (id == R.id.location_share_start) {
-            beginAlarm(getCurrentFocus());
+            if(!prefs.getBoolean(getString(R.string.share_location), false)) {
+                startLocationShare(getCurrentFocus());
+                editor.apply();
+            }
+            else{
+                Tools.toastShort("Already sharing", getApplicationContext());
+            }
+            //item.setVisible(false);
+
 
         } else if (id == R.id.location_share_stop) {
-            stopAlarm(getCurrentFocus());
+            stopLocationShare(getCurrentFocus());
+            //item.setVisible(false);
+            editor.apply();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+
 
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
@@ -373,34 +373,11 @@ public class MapsActivity
      */
     private void setUpMap() {
         try{
-            new SqlConnector_GetLocs().execute(getTimePairFromNow(48,0));
+            new SqlConnector_GetLocs().execute(Tools.getTimePairFromNow(48,0));
         }
         catch(Exception e){
             e.printStackTrace();
         }
-    }
-
-    /* Generates TimePair object based on time from past to current
-    PRE: None.
-    POST: None.
-    RETURN: TimePair object with 2 timestamps. Uses parameters to find difference between current
-             time and past time.
-     */
-    public TimePair getTimePairFromNow(int hours, int minutes){
-
-            Calendar cal = Calendar.getInstance();
-            java.util.Date d1 = cal.getTime();
-            cal.add(Calendar.HOUR, hours * (-1));
-            cal.add(Calendar.MINUTE, minutes * (-1));
-            java.util.Date d2 = cal.getTime();
-
-            java.text.SimpleDateFormat sdf =
-                    new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-
-            String time1 = sdf.format(d1);
-            String time2 = sdf.format(d2);
-
-            return new TimePair(Timestamp.valueOf(time2), Timestamp.valueOf(time1));
     }
 
     /* buildGoogleApiClient builds the API client with location services and Plus privileges.
@@ -505,28 +482,35 @@ public class MapsActivity
     }
 
     private void addHeatMap() {
-        // best solution so far has been waiting.
-        try{
-            Thread.sleep(5000);
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
-
         int[] colors = {
-                Color.rgb(102, 225, 0), // green
+                Color.rgb(0, 225, 169), // bluish
+                Color.rgb(43, 214, 0),
+                Color.rgb(224, 232, 0),
                 Color.rgb(255, 0, 0)    // red
         };
 
         float[] startPoints = {
-                0.2f, 1f
+                0.1f, 0.3f, 0.7f, 1f
         };
 
         Gradient gradient = new Gradient(colors, startPoints);
 
+        ArrayList<WeightedLatLng> weightedList = new ArrayList();
+        for(int i = 0; i < list.size(); i++){
+            Calendar cal = Calendar.getInstance();
+            double currentTime = cal.getTime().getTime();
+
+            double weight = list.get(i).getTime().getTime() - currentTime;
+            weight = 1/weight;
+            if(list.get(i).getCheckIn()){
+                weight = weight*2;
+            }
+            weightedList.add(new WeightedLatLng(list.get(i).getLatLng(), weight));
+        }
+
         // Create a heat map tile provider, passing it the latlngs of the police stations.
         mProvider = new HeatmapTileProvider.Builder()
-                .data(list)
+                .weightedData(weightedList)
                 .radius(20)
                 .opacity(0.7)
                 .gradient(gradient)
@@ -556,6 +540,7 @@ public class MapsActivity
             if (resultCode == RESULT_OK) {
                 Place place = PlacePicker.getPlace(data, this);
                 String toastMsg = String.format("Checked in at %s", place.getName());
+                sendNewLocationPoint(true);
                 Tools.toastLong(toastMsg, getApplicationContext());
             }
         }
@@ -611,9 +596,9 @@ public class MapsActivity
         finish();
     }
 
-    private class SqlConnector_PushLoc extends AsyncTask<String, Void, String> {
+    private class SqlConnector_PushLoc extends AsyncTask<Boolean, Void, String> {
         @Override
-        protected String doInBackground(String... urls) {
+        protected String doInBackground(Boolean... bool) {
             String response = "";
             try {
                 if( sender.getID(prefs.getString(getString(R.string.GOOGLE_ID), "X")) == 0){
@@ -623,20 +608,12 @@ public class MapsActivity
                         prefs.getString(getString(R.string.GOOGLE_ID), "NULL")
                     );
                 }
-                sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude());
+                sender.addLoc(lastLocation.getLatitude(), lastLocation.getLongitude(), bool[0]);
             } catch (Exception e) {
                 e.printStackTrace();
             }
             return response;
         }
-
-        public void Connect(){
-            MapsActivity.SqlConnector_PushLoc task = new SqlConnector_PushLoc();
-            task.execute();
-
-            //Tools.toastLong(task.doInBackground(), getApplicationContext());
-        }
-
 
     }
 
@@ -646,7 +623,7 @@ public class MapsActivity
         protected String doInBackground(TimePair... datepair) {
             try {
                 SqlSender send = new SqlSender();
-                List<LatLng> tempList = (ArrayList<LatLng>) send.getSet(datepair[0].time1, datepair[0].time2);
+                List<LocationObject> tempList = (ArrayList<LocationObject>) send.getSet(datepair[0].time1, datepair[0].time2);
                 setList(tempList);
                 if(tempList.isEmpty()){
                     return "fail";
@@ -683,24 +660,23 @@ public class MapsActivity
         }
     }
 
-    public void beginAlarm(View view) {
-        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
+    public void startLocationShare(View view) {
+        editor.putBoolean(getString(R.string.share_location), true);
 
-        manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        int interval = 300000;
+        Tools.toastShort("Sharing Location", getApplicationContext());
+        locationIntent = new Intent(this, LocationService.class);
+        startService(locationIntent);
 
-        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-        Tools.toastShort("Alarm Started", getApplicationContext());
-        System.out.println("Alarm started");
+        System.out.println("Started alarm");
     }
 
-    public void stopAlarm(View view) {
-        if (manager != null) {
-            manager.cancel(pendingIntent);
-            Tools.toastShort("Alarm Canceled", getApplicationContext());
-            System.out.println("Cancelled alarm");
-        }
+    public void stopLocationShare(View view) {
+        editor.putBoolean(getString(R.string.share_location), false);
+
+        Tools.toastShort("Location sharing disabled", getApplicationContext());
+        stopService(locationIntent);
+        System.out.println("Cancelled alarm");
+
     }
 
     private void searchNearby(){
