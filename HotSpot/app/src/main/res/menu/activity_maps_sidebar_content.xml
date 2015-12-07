@@ -20,10 +20,18 @@
 
     <item android:title="Participation">
         <menu>
-            <item android:id="@+id/location_share_start"
+            <item android:id="@+id/location_share_half_hour"
                 android:visible="true"
                 android:icon="@android:drawable/ic_menu_share"
-                android:title="Start sharing" />
+                android:title="Share for 30 minutes" />
+            <item android:id="@+id/location_share_one_hour"
+                android:visible="true"
+                android:icon="@android:drawable/ic_menu_share"
+                android:title="Share for one hour" />
+            <item android:id="@+id/location_share_two_hours"
+                android:visible="true"
+                android:icon="@android:drawable/ic_menu_share"
+                android:title="Share for two hours" />
             <item android:id="@+id/location_share_stop"
                 android:visible="true"
                 android:icon="@android:drawable/ic_delete"

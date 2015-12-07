@@ -313,21 +313,43 @@ public class MapsActivity
             catch(Exception e) {
                 e.printStackTrace();
             }
-        } else if (id == R.id.location_share_start) {
-            if(!prefs.getBoolean(getString(R.string.share_location), false)) {
+        }
+        else if (id == R.id.location_share_half_hour) {
+            if(prefs.getInt(getString(R.string.share_location_timer), 0) <= 0) {
                 startLocationShare(getCurrentFocus());
-                editor.apply();
+                Tools.toastShort("Sharing location for 30 minutes", getApplicationContext());
             }
             else{
-                Tools.toastShort("Already sharing", getApplicationContext());
+                Tools.toastShort("Adjusted to 30 minutes", getApplicationContext());
             }
-            //item.setVisible(false);
-
-
-        } else if (id == R.id.location_share_stop) {
-            stopLocationShare(getCurrentFocus());
-            //item.setVisible(false);
+            editor.putInt(getString(R.string.share_location_timer), 4);
             editor.apply();
+        }
+        else if (id == R.id.location_share_one_hour) {
+            if (prefs.getInt(getString(R.string.share_location_timer), 0) <= 0) {
+                startLocationShare(getCurrentFocus());
+                Tools.toastShort("Sharing location for one hour", getApplicationContext());
+            } else {
+                Tools.toastShort("Adjusted to 1 hour", getApplicationContext());
+            }
+            editor.putInt(getString(R.string.share_location_timer), 7);
+            editor.apply();
+        }
+        else if (id == R.id.location_share_two_hours) {
+            if (prefs.getInt(getString(R.string.share_location_timer), 0) <= 0) {
+                startLocationShare(getCurrentFocus());
+                Tools.toastShort("Sharing location for two hours", getApplicationContext());
+            } else {
+                Tools.toastShort("Adjusted to 2 hours", getApplicationContext());
+            }
+            editor.putInt(getString(R.string.share_location_timer), 13);
+            editor.apply();
+        }
+        else if (id == R.id.location_share_stop) {
+            stopLocationShare(getCurrentFocus());
+            editor.putInt(getString(R.string.share_location_timer), 0);
+            editor.apply();
+            Tools.toastShort("Location sharing disabled", getApplicationContext());
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -483,14 +505,15 @@ public class MapsActivity
 
     private void addHeatMap() {
         int[] colors = {
-                Color.rgb(0, 225, 169), // bluish
-                Color.rgb(43, 214, 0),
-                Color.rgb(224, 232, 0),
+                Color.rgb(117, 255, 255), // light blue
+                Color.rgb(43, 214, 0),  // green
+                Color.rgb(224, 232, 0), // yellow
+                Color.rgb(242, 170, 0), // orange
                 Color.rgb(255, 0, 0)    // red
         };
 
         float[] startPoints = {
-                0.1f, 0.3f, 0.7f, 1f
+                0.1f, 0.3f, 0.7f, 0.9f, 1f
         };
 
         Gradient gradient = new Gradient(colors, startPoints);
@@ -661,22 +684,15 @@ public class MapsActivity
     }
 
     public void startLocationShare(View view) {
-        editor.putBoolean(getString(R.string.share_location), true);
-
-        Tools.toastShort("Sharing Location", getApplicationContext());
         locationIntent = new Intent(this, LocationService.class);
         startService(locationIntent);
 
-        System.out.println("Started alarm");
+        System.out.println("Started service");
     }
 
     public void stopLocationShare(View view) {
-        editor.putBoolean(getString(R.string.share_location), false);
-
-        Tools.toastShort("Location sharing disabled", getApplicationContext());
         stopService(locationIntent);
-        System.out.println("Cancelled alarm");
-
+        System.out.println("Cancelled service");
     }
 
     private void searchNearby(){
